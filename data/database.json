@@ -1,0 +1,20 @@
+{
+  "users": [
+    {
+      "id": "80bb12dae8833d949f4e84fecf88bbfb",
+      "discordId": "1147930457439223920",
+      "handle": "1221",
+      "displayName": "Unknown",
+      "avatar": "https://cdn.discordapp.com/avatars/1147930457439223920/3eb1d5a7d68898a6581dd956a0e3107e.png?size=256",
+      "bio": "",
+      "createdAt": "2026-09-27T21:44:13.045Z"
+    }
+  ],
+  "posts": [],
+  "sessions": {
+    "9a32718e9e27c34aee9703d041a3e816": {
+      "userId": "80bb12dae8833d949f4e84fecf88bbfb",
+      "createdAt": 1790545453046
+    }
+  }
+}

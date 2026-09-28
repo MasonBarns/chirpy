@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#08090d" />
+  <title><%= page === "app" ? "Chirpy" : page === "moderation" ? "Moderation · Chirpy" : page === "login" ? "Sign in · Chirpy" : page === "onboarding" ? "Profile setup · Chirpy" : page === "terms" ? "Terms of Service · Chirpy" : page === "privacy" ? "Privacy Policy · Chirpy" : page === "landing" ? "Chirpy — Find your people" : "Chirpy — Under Maintenance" %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #08090d;
+      --panel: #101116;
+      --text: #f2f3f7;
+      --muted: #9295a1;
+      --line: #262832;
+      --accent: #ff4d14;
+      --accent-light: #ff8057;
+      --accent-soft: rgba(255,77,20,.12);
+      --red: #ff5364;
+      --green: #4bd39a;
+      --blue: #3994ff;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font: 14px Inter,Arial,sans-serif; }
+    a { color: inherit; text-decoration: none; }
+    button,input,textarea,select { font: inherit; }
+    button { color: inherit; cursor: pointer; }
+    .eyebrow,.timestamp,.mono { font-family: "DM Mono",monospace; }
+    .muted { color: var(--muted); }
+
+    .badge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-left: 4px; vertical-align: -4px; filter: drop-shadow(0 0 3px currentColor); }
+    .badge svg { display: block; width: 100%; height: 100%; overflow: visible; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    .badge.verified,.badge.staff-check { color: #ff8738; }
+    .badge.manager { color: #f4aa40; }
+    .badge.moderator { color: #8b9cff; }
+    .badge.owner { color: #ffcf55; }
+    .mini-name > span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 400; }
+    .mini-badges { display: inline-flex !important; align-items: center; gap: 2px; margin-left: 2px !important; color: var(--text) !important; }
+    .mini-badges .badge { display: inline-flex; width: 16px; height: 16px; margin: 0; vertical-align: middle; }
+
+    /* Wide maintenance screen */
+    .maintenance-page {
+      min-height: 100vh; display: grid; place-items: center; position: relative;
+      overflow: hidden; padding: 72px 24px 36px; isolation: isolate;
+      background: radial-gradient(ellipse at 8% 8%,rgba(255,77,20,.18),transparent 32%),
+        radial-gradient(ellipse at 94% 90%,rgba(114,38,25,.18),transparent 34%),#060811;
+    }
+    .maintenance-page::before,.maintenance-page::after {
+      content: ""; position: absolute; z-index: -2; pointer-events: none; border-radius: 50%;
+      animation: maintenance-drift 28s ease-in-out infinite alternate;
+    }
+    .maintenance-page::before {
+      width: 720px; height: 780px; top: -430px; left: -180px;
+      border: 1px solid rgba(255,112,67,.13);
+      background: radial-gradient(ellipse,rgba(255,77,20,.16),rgba(16,17,36,.43) 62%,transparent 70%);
+      box-shadow: 0 0 0 34px rgba(255,77,20,.025),0 0 0 75px rgba(255,77,20,.018);
+    }
+    .maintenance-page::after {
+      width: 740px; height: 800px; right: -310px; bottom: -490px;
+      border: 1px solid rgba(255,112,67,.14);
+      background: radial-gradient(ellipse,rgba(112,40,34,.24),rgba(13,14,34,.5) 62%,transparent 70%);
+      animation-delay: -8s;
+    }
+    .ambient-glow { position: absolute; z-index: -1; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle,rgba(255,77,20,.17),transparent 70%); filter: blur(14px); pointer-events: none; animation: glow-float 10s ease-in-out infinite alternate; }
+    .ambient-glow.one { top: 10%; left: 18%; }
+    .ambient-glow.two { right: 10%; bottom: 5%; width: 470px; height: 470px; animation-delay: -5s; }
+    .maintenance-dots { position: absolute; z-index: -1; width: 340px; height: 390px; opacity: .72; pointer-events: none; background-image: radial-gradient(circle,rgba(255,104,59,.95) 1.5px,transparent 2px); background-size: 20px 20px; mask-image: radial-gradient(ellipse,#000 5%,transparent 72%); animation: dots-drift 11s ease-in-out infinite alternate; }
+    .maintenance-dots.top { top: -55px; left: 30%; transform: rotate(22deg); }
+    .maintenance-dots.bottom { right: 1%; bottom: -100px; transform: rotate(24deg); animation-delay: -4s; }
+    .maintenance-wordmark { position: absolute; top: 28px; left: max(30px,calc((100vw - 1170px)/2)); display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; letter-spacing: .09em; }
+    .maintenance-wordmark img { display: block; width: 28px; height: 28px; object-fit: contain; }
+    .maintenance-status-top { position: absolute; top: 37px; right: max(30px,calc((100vw - 1170px)/2)); color: #b4b8c7; font: 10px "DM Mono",monospace; letter-spacing: .04em; text-transform: uppercase; }
+    .maintenance-status-top::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px rgba(255,77,20,.85); animation: pulse 1.8s ease-in-out infinite; }
+    .maintenance-card { display: grid; grid-template-columns: minmax(0,1fr) 288px; width: min(890px,100%); min-height: 444px; overflow: hidden; border: 1px solid #302638; border-radius: 26px; background: rgba(8,12,27,.95); box-shadow: 0 35px 110px rgba(0,0,0,.48); animation: card-in .65s ease both; }
+    .maintenance-main { display: flex; flex-direction: column; justify-content: center; padding: 52px 58px; }
+    .maintenance-brand { display: flex; align-items: center; gap: 15px; margin-bottom: 38px; }
+    .maintenance-logo { display: grid; width: 68px; height: 68px; flex: 0 0 68px; place-items: center; overflow: hidden; border: 1px solid rgba(255,111,69,.42); border-radius: 21px; background: linear-gradient(145deg,rgba(255,77,20,.27),#171326); }
+    .maintenance-logo img { display: block; width: 48px; height: 48px; object-fit: contain; }
+    .maintenance-brand-copy .eyebrow { margin-bottom: 7px; }
+    .maintenance-brand-copy strong { font-size: 14px; letter-spacing: .03em; }
+    .maintenance-kicker { margin: 0 0 16px; color: #ff936f; font: 500 10px "DM Mono",monospace; letter-spacing: .13em; text-transform: uppercase; }
+    .maintenance-title { margin: 0; font-size: clamp(48px,6vw,62px); font-weight: 700; letter-spacing: -.075em; line-height: .98; }
+    .maintenance-description { max-width: 470px; margin: 24px 0 0; color: #929bb8; font-size: 15px; line-height: 1.75; }
+    .maintenance-side { display: flex; flex-direction: column; justify-content: center; padding: 42px 36px; border-left: 1px solid #302638; background: linear-gradient(160deg,rgba(57,30,37,.74),rgba(9,13,29,.9) 70%); }
+    .maintenance-side-label { margin: 0 0 12px; color: #ffb098; font: 500 10px "DM Mono",monospace; letter-spacing: .12em; text-transform: uppercase; }
+    .maintenance-status-box { padding: 16px; border: 1px solid rgba(255,104,59,.19); border-radius: 16px; background: rgba(7,11,25,.58); }
+    .maintenance-status-box strong { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .maintenance-status-box strong::before { content: ""; width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px rgba(255,77,20,.85); }
+    .maintenance-status-box p { margin: 10px 0 0 18px; color: #9296a9; font-size: 11px; line-height: 1.6; }
+    .maintenance-deployment { display: flex; justify-content: space-between; margin: 50px 0 10px; color: #b2b4c1; font: 10px "DM Mono",monospace; letter-spacing: .08em; text-transform: uppercase; }
+    .maintenance-deployment strong { color: #ff936f; }
+    .maintenance-progress { display: block; width: 100%; height: 7px; overflow: hidden; border: 0; border-radius: 99px; background: #302735; appearance: none; }
+    .maintenance-progress::-webkit-progress-bar { border-radius: 99px; background: #302735; }
+    .maintenance-progress::-webkit-progress-value { border-radius: 99px; background: linear-gradient(90deg,#ff4d14,#ff9a57); animation: progress-glow 2.3s ease-in-out infinite alternate; }
+    .maintenance-progress::-moz-progress-bar { border-radius: 99px; background: linear-gradient(90deg,#ff4d14,#ff9a57); }
+    .maintenance-admin,.primary-button { width: 100%; min-height: 46px; margin-top: 22px; border: 1px solid rgba(255,160,126,.32); border-radius: 11px; background: linear-gradient(100deg,#ff4d14,#ff7040); color: white; font-weight: 700; }
+    .maintenance-admin:disabled { cursor: wait; opacity: .7; }
+    .maintenance-password { width: 100%; height: 44px; margin-top: 12px; padding: 0 13px; border: 1px solid #44303a; border-radius: 9px; outline: none; background: #080c19; color: white; }
+    .maintenance-error { margin: 8px 0 0; color: #ff8796; font-size: 11px; }
+    .maintenance-thanks { margin: 15px 0 0; color: #83859a; font-size: 11px; line-height: 1.6; }
+
+    /* Public landing */
+    .landing-page { min-height: 100vh; position: relative; overflow: hidden; isolation: isolate; background: radial-gradient(ellipse at 50% 45%,rgba(255,77,20,.12),transparent 38%),#08090d; }
+    .landing-page::before { content: ""; position: absolute; z-index: -2; inset: 0; opacity: .34; pointer-events: none; background-image: radial-gradient(circle,rgba(255,111,65,.72) 1px,transparent 1.6px); background-size: 12px 12px; mask-image: radial-gradient(ellipse 54% 43% at 50% 48%,#000 5%,transparent 100%); }
+    .landing-page::after { content: ""; position: absolute; z-index: -1; top: 14%; left: 50%; width: min(880px,94vw); height: 530px; transform: translateX(-50%); border: 1px solid rgba(255,111,65,.09); border-radius: 50%; box-shadow: 0 0 0 38px rgba(255,77,20,.018),0 0 0 92px rgba(255,77,20,.014); pointer-events: none; }
+    .landing-header { display: flex; width: min(1200px,calc(100% - 64px)); height: 88px; align-items: center; justify-content: space-between; margin: 0 auto; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .landing-brand { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; letter-spacing: .14em; }
+    .landing-brand img { width: 31px; height: 31px; object-fit: contain; }
+    .landing-nav { display: flex; align-items: center; gap: 30px; color: #a6a6b0; font-size: 12px; }
+    .landing-nav a:hover { color: white; }
+    .landing-nav .landing-signin { padding: 10px 17px; border: 1px solid rgba(255,255,255,.19); border-radius: 8px; color: white; }
+    .landing-nav .landing-signin:hover { border-color: rgba(255,112,65,.8); }
+    .landing-hero { display: flex; min-height: calc(100vh - 89px); flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px 88px; text-align: center; }
+    .landing-logo { display: grid; width: 98px; height: 98px; place-items: center; margin-bottom: 25px; border: 1px solid rgba(255,115,71,.34); border-radius: 29px; background: linear-gradient(145deg,rgba(255,77,20,.22),rgba(20,14,18,.88)); box-shadow: 0 0 75px rgba(255,77,20,.2),inset 0 1px rgba(255,255,255,.08); animation: card-in .8s ease both; }
+    .landing-logo img { width: 69px; height: 69px; object-fit: contain; }
+    .landing-kicker { margin: 0 0 17px; color: #ff956e; font: 500 10px "DM Mono",monospace; letter-spacing: .19em; text-transform: uppercase; }
+    .landing-title { max-width: 820px; margin: 0; font-size: clamp(48px,8vw,92px); font-weight: 700; letter-spacing: -.085em; line-height: .98; }
+    .landing-title span { color: #ff6335; }
+    .landing-description { max-width: 510px; margin: 23px 0 0; color: #a4a4b0; font-size: 15px; line-height: 1.75; }
+    .landing-cta { display: inline-flex; min-height: 51px; align-items: center; justify-content: center; gap: 11px; margin-top: 33px; padding: 0 23px; border: 1px solid rgba(255,153,120,.32); border-radius: 10px; background: linear-gradient(105deg,#ff4d14,#ff7040); box-shadow: 0 12px 35px rgba(255,77,20,.22); color: white; font-weight: 700; transition: transform .18s ease,box-shadow .18s ease; }
+    .landing-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 42px rgba(255,77,20,.32); }
+    .landing-cta svg { width: 18px; height: 18px; fill: currentColor; }
+    .landing-footnote { margin: 15px 0 0; color: #777985; font-size: 11px; }
+    .landing-legal-links { display: flex; gap: 18px; margin-top: 30px; color: #888a96; font-size: 11px; }
+    .landing-legal-links a:hover,.legal-nav a:hover { color: #ff956e; }
+    .legal-page { min-height: 100vh; background: radial-gradient(ellipse at 50% 0,rgba(255,77,20,.1),transparent 38%),#08090d; }
+    .legal-header { display: flex; width: min(1100px,calc(100% - 48px)); height: 78px; align-items: center; justify-content: space-between; margin: 0 auto; border-bottom: 1px solid rgba(255,255,255,.09); }
+    .legal-brand { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 800; letter-spacing: .13em; }
+    .legal-brand img { width: 29px; height: 29px; object-fit: contain; }
+    .legal-nav { display: flex; gap: 20px; color: #a5a6b1; font-size: 12px; }
+    .legal-content { width: min(820px,calc(100% - 48px)); margin: 0 auto; padding: 72px 0 96px; }
+    .legal-content .eyebrow { color: #ff956e; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+    .legal-content h1 { margin: 12px 0; font-size: clamp(38px,7vw,62px); letter-spacing: -.06em; }
+    .legal-intro { max-width: 680px; margin: 0 0 42px; color: #aaabb5; font-size: 15px; line-height: 1.8; }
+    .legal-content section { margin: 30px 0; }
+    .legal-content h2 { margin: 0 0 10px; font-size: 19px; }
+    .legal-content p,.legal-content li { color: #b8bac4; font-size: 13px; line-height: 1.85; }
+    .legal-content ul { padding-left: 21px; }
+    .legal-contact-note { margin-top: 44px; padding: 16px 18px; border: 1px solid #39303a; border-radius: 10px; background: rgba(255,77,20,.06); color: #d2c9cc; font-size: 12px; line-height: 1.7; }
+
+    /* Auth */
+    .auth-page { min-height: 100vh; display: grid; place-items: center; position: relative; overflow: hidden; padding: 76px 20px 36px; isolation: isolate; background: radial-gradient(ellipse at 7% 8%,rgba(255,77,20,.15),transparent 34%),radial-gradient(ellipse at 96% 92%,rgba(119,40,27,.17),transparent 36%),#070811; }
+    .auth-page::before,.auth-page::after { content: ""; position: absolute; z-index: -1; width: 680px; height: 680px; border: 1px solid rgba(255,110,70,.1); border-radius: 50%; pointer-events: none; animation: orbit 34s linear infinite; }
+    .auth-page::before { top: -480px; left: -210px; box-shadow: 0 0 0 34px rgba(255,77,20,.025),0 0 0 72px rgba(255,77,20,.018); }
+    .auth-page::after { right: -450px; bottom: -500px; animation-direction: reverse; }
+    .auth-brand { position: absolute; top: 25px; left: 30px; z-index: 1; display: flex; align-items: center; gap: 9px; font-weight: 800; letter-spacing: .13em; }
+    .auth-brand img { width: 26px; height: 26px; object-fit: contain; }
+    .auth-card { position: relative; z-index: 1; width: min(480px,100%); padding: 42px; border: 1px solid #302a34; border-radius: 20px; background: rgba(12,14,24,.95); box-shadow: 0 32px 100px rgba(0,0,0,.48); animation: card-in .55s ease both; }
+    .auth-logo { display: grid; width: 58px; height: 58px; place-items: center; margin-bottom: 24px; border: 1px solid rgba(255,111,69,.34); border-radius: 17px; background: rgba(255,77,20,.1); }
+    .auth-logo img { width: 42px; height: 42px; object-fit: contain; }
+    .eyebrow { margin: 0; color: #ff9b7a; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+    .auth-card h1 { margin: 9px 0 12px; font-size: clamp(29px,6vw,39px); letter-spacing: -.06em; line-height: 1.08; }
+    .auth-card > p,.auth-card form > p { color: #a5a9b7; line-height: 1.7; }
+    .auth-card label { display: block; margin-top: 18px; color: #c5c7d0; font-size: 12px; font-weight: 600; }
+    .auth-input,.field { width: 100%; height: 44px; margin-top: 8px; padding: 0 12px; border: 1px solid #34333e; border-radius: 9px; outline: none; background: #090a11; color: var(--text); }
+    .auth-input:focus,.field:focus { border-color: var(--accent); }
+    .auth-btn { display: inline-flex; width: 100%; min-height: 47px; align-items: center; justify-content: center; margin-top: 18px; border: 0; border-radius: 9px; background: var(--accent); font-weight: 700; }
+    .form-error { color: #ff8996 !important; font-size: 12px; }
+    .back-home { display: inline-block; margin-top: 20px; color: #a5abc0; font-size: 12px; }
+    .onboarding-meta { display: flex; align-items: center; gap: 10px; margin: 24px 0 22px; }
+    .onboarding-meta span { height: 1px; flex: 1; background: #33303a; }
+    .onboarding-meta small { color: #8f92a0; font: 10px "DM Mono",monospace; text-transform: uppercase; }
+    .handle-prefix { position: relative; }
+    .handle-prefix::before { content: "@"; position: absolute; z-index: 1; top: 22px; left: 13px; color: #8d909d; }
+    .handle-prefix .auth-input { padding-left: 30px; }
+    .input-hint { margin: 8px 0 0 !important; color: #777b89 !important; font-size: 11px; }
+    .form-footnote { display: flex; gap: 9px; margin-top: 17px; padding: 12px; border: 1px solid #302b30; border-radius: 9px; color: #9295a1; font-size: 11px; line-height: 1.55; }
+    .form-footnote svg { width: 16px; height: 16px; flex: 0 0 16px; color: var(--accent-light); }
+
+    /* App shell and feed */
+    .app-shell { display: grid; width: min(1120px,100%); min-height: 100vh; grid-template-columns: 230px minmax(390px,760px); gap: 28px; margin: 0 auto; padding: 0 28px; }
+    .sidebar { position: sticky; top: 0; display: flex; height: 100vh; flex-direction: column; padding: 19px 9px 14px 0; border-right: 1px solid #21232b; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 10px 22px; font-weight: 800; letter-spacing: .13em; }
+    .brand img { width: 30px; height: 30px; object-fit: contain; }
+    .brand-name { font-size: 12px; }
+    .profile-mini { display: flex; align-items: center; gap: 10px; padding: 15px 8px; margin: 0 8px 17px 0; border-top: 1px solid #20222a; border-bottom: 1px solid #20222a; }
+    .avatar { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; overflow: hidden; border: 1px solid #343540; border-radius: 50%; background: #29201f; color: white; font-weight: 700; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar img[data-fallback] { display: none; }
+    .avatar img:not([data-fallback]) + span { display: none; }
+    .avatar.small { width: 34px; height: 34px; flex-basis: 34px; }
+    .avatar.large { width: 84px; height: 84px; flex-basis: 84px; font-size: 26px; }
+    .mini-name { min-width: 0; font-weight: 650; }
+    .nav { display: grid; gap: 4px; }
+    .nav-link { display: flex; min-height: 43px; align-items: center; gap: 13px; padding: 0 12px; border-radius: 9px; color: #d0d1d7; }
+    .nav-link:hover { background: #191513; color: white; }
+    .nav-link.active { background: var(--accent-soft); color: #ff8057; }
+    .nav-link svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-link.settings-link svg { width: 22px; height: 22px; stroke-width: 2.7; }
+    .create-btn,.post-submit { min-height: 41px; border: 0; border-radius: 9px; background: var(--accent); color: white; font-weight: 700; }
+    .create-btn { margin-top: 17px; }
+    .sidebar-bottom { display: flex; align-items: center; gap: 9px; margin-top: auto; padding: 12px 5px 0 2px; }
+    .sidebar-bottom .mini-name { flex: 1; font-size: 12px; }
+    .logout-btn { padding: 7px; border: 0; background: transparent; color: #8d909b; }
+    .feed { min-width: 0; padding: 12px 0 60px; }
+    .feed-top { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 5px 0 12px; border-bottom: 1px solid #20222a; background: rgba(8,9,13,.92); backdrop-filter: blur(12px); }
+    .search-form { display: flex; flex: 1; }
+    .search-input { width: 100%; height: 38px; padding: 0 14px; border: 1px solid #272a34; border-radius: 9px; outline: 0; background: #121318; color: white; }
+    .search-input:focus { border-color: var(--accent); }
+    .feed-heading { padding: 22px 0 14px; }
+    .feed-heading h1,.settings-intro h1 { margin: 0; font-size: 25px; letter-spacing: -.04em; }
+    .feed-heading p,.settings-intro p { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
+    .tabs,.profile-tabs { display: flex; border-bottom: 1px solid #252730; }
+    .tab,.profile-tab { flex: 1; padding: 13px; color: #999ca6; text-align: center; }
+    .tab.active,.profile-tab.active { border-bottom: 2px solid var(--accent); color: white; }
+    .composer { margin: 16px 0 20px; padding: 16px; border: 1px solid #292b33; border-radius: 12px; background: linear-gradient(135deg,#121318,#0e0f14); }
+    .composer-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+    .composer-identity { display: flex; align-items: center; gap: 9px; }
+    .composer-label { display: grid; gap: 3px; min-width: 0; }
+    .composer-label strong { max-width: 145px; overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .composer-label > span { display: flex; align-items: center; }
+    .composer-label .badge { width: 16px; height: 16px; margin: 0 3px 0 0; vertical-align: middle; }
+    .composer textarea { width: auto; min-width: 200px; min-height: 74px; flex: 1 1 240px; resize: vertical; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 15px; }
+    .composer-bottom { display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid #292b33; }
+    .composer-bottom input { min-width: 0; flex: 1; padding: 9px; border: 1px solid #272a34; border-radius: 8px; background: #0a0b10; color: white; }
+    .composer-upload-row { display: flex; align-items: center; gap: 12px; padding-top: 11px; }
+    .composer-poll-row { padding-top: 9px; }
+    .poll-toggle { padding: 7px 10px; border: 1px solid #30323c; border-radius: 8px; background: #17181f; color: #c5c7d0; font-size: 11px; }
+    .poll-toggle[aria-pressed="true"] { border-color: rgba(255,77,20,.5); color: #ff956e; }
+    .poll-editor { display: grid; gap: 8px; margin-top: 10px; }
+    .poll-editor input { width: 100%; padding: 9px 11px; border: 1px solid #30323c; border-radius: 8px; background: #0a0b10; color: white; }
+    .image-upload-button { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; padding: 0 12px; border: 1px solid #30323c; border-radius: 8px; background: #17181f; color: #dadbe2; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .image-upload-button:hover { border-color: var(--accent); color: white; }
+    .image-upload-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); clip-path: inset(50%); white-space: nowrap; }
+    .upload-name { min-width: 0; overflow: hidden; color: #9b9eaa; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .upload-error { margin: 8px 0 0; color: #ff8796; font-size: 12px; }
+    .image-preview { position: relative; width: fit-content; max-width: 100%; margin-top: 12px; }
+    .image-preview img { display: block; max-width: min(100%,360px); max-height: 260px; border: 1px solid #363842; border-radius: 10px; object-fit: contain; }
+    .image-preview button { position: absolute; top: 8px; right: 8px; padding: 6px 9px; border: 1px solid rgba(255,255,255,.2); border-radius: 7px; background: rgba(9,10,14,.88); font-size: 11px; }
+    .char-count { color: #858895; font: 11px "DM Mono",monospace; }
+    .post-submit { padding: 9px 16px; }
+    .post-submit:disabled { opacity: .45; cursor: not-allowed; }
+    .post { padding: 19px 0 17px; border-bottom: 1px solid #22242c; }
+    .post-header { display: flex; align-items: center; gap: 10px; }
+    .post-author { min-width: 0; flex: 1; }
+    .author-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .author-name { font-weight: 700; }
+    .author-handle,.timestamp { color: #858894; font-size: 12px; }
+    .post-body { margin: 10px 0 12px 44px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
+    .post-image { display: block; max-width: calc(100% - 44px); max-height: 440px; margin: 10px 0 12px 44px; border: 1px solid #2b2d36; border-radius: 10px; object-fit: cover; }
+    .poll-card { margin: 13px 0 12px 44px; padding: 14px; border: 1px solid #2b2d36; border-radius: 11px; background: #101116; }
+    .poll-question { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 11px; }
+    .poll-question strong { font-size: 13px; line-height: 1.5; }
+    .poll-question > span { flex: 0 0 auto; color: #858894; font-size: 10px; }
+    .poll-options { display: grid; gap: 7px; }
+    .poll-option-button { position: relative; display: flex; min-height: 38px; align-items: center; justify-content: space-between; gap: 10px; overflow: hidden; padding: 8px 10px; border: 1px solid #30323c; border-radius: 7px; background: #0a0b10; text-align: left; }
+    .poll-option-button.selected { border-color: rgba(255,77,20,.75); }
+    .poll-option-fill { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; pointer-events: none; appearance: none; }
+    .poll-option-fill::-webkit-progress-bar { background: transparent; }
+    .poll-option-fill::-webkit-progress-value { background: rgba(255,77,20,.16); }
+    .poll-option-fill::-moz-progress-bar { background: rgba(255,77,20,.16); }
+    .poll-option-label,.poll-option-result { position: relative; z-index: 1; }
+    .poll-option-label { overflow-wrap: anywhere; }
+    .poll-option-result { flex: 0 0 auto; color: #b9bbc5; font-size: 10px; }
+    .poll-footnote { margin-top: 9px; color: #858894; font-size: 10px; }
+    .post-actions { display: flex; justify-content: space-between; max-width: 470px; margin-left: 38px; }
+    .reaction-bar { display: flex; flex-wrap: wrap; gap: 5px; margin: 4px 0 0 44px; }
+    .reaction-button { display: inline-flex; min-width: 47px; min-height: 29px; align-items: center; justify-content: center; gap: 5px; padding: 3px 7px; border: 1px solid transparent; border-radius: 15px; background: #121319; color: #b7b9c3; }
+    .reaction-button:hover { border-color: #373943; }
+    .reaction-button.selected { border-color: rgba(255,77,20,.55); background: rgba(255,77,20,.12); }
+    .reaction-button span { font-size: 14px; }
+    .reaction-button small { font-size: 10px; }
+    .post-interaction-error { margin: 8px 0 0 44px; color: #ff8796; font-size: 11px; }
+    .icon-btn { display: inline-flex; align-items: center; gap: 7px; padding: 6px 7px; border: 0; border-radius: 7px; background: transparent; color: #858894; font-size: 12px; }
+    .icon-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .icon-btn.liked { color: var(--red); }
+    .icon-btn.liked svg { fill: var(--red); stroke: var(--red); animation: heart-pop .35s ease; }
+    .icon-btn.reposted { color: var(--green); }
+    .icon-btn.bookmarked { color: var(--accent-light); }
+    .comment-list { margin: 8px 0 0 44px; }
+    .comment { padding: 8px 0; color: #c9cbd4; font-size: 12px; line-height: 1.55; }
+    .comment strong { margin-right: 6px; color: white; }
+    .comment-form { display: flex; gap: 8px; margin: 8px 0 0 44px; }
+    .comment-form input { min-width: 0; flex: 1; padding: 9px 11px; border: 1px solid #292c36; border-radius: 8px; background: #101116; color: white; }
+    .comment-form button { border: 0; background: transparent; color: var(--accent-light); }
+    .mod-actions { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0 0 44px; }
+    .mod-actions form { display: inline; }
+    .mod-button,.role-button { padding: 7px 10px; border: 1px solid #343540; border-radius: 7px; background: #15161d; color: #c5c6ce; font-size: 11px; }
+    .mod-button.danger { border-color: rgba(255,83,100,.3); color: #ff8796; }
+    .repost-note { margin: 0 0 9px 44px; color: #7fbf9f; font-size: 11px; }
+    .profile-header { padding: 25px 0 0; }
+    .profile-info { display: flex; align-items: center; gap: 17px; }
+    .profile-info h2 { margin: 0; font-size: 21px; }
+    .profile-bio { margin: 17px 0 0; color: #b2b4bd; line-height: 1.6; }
+    .profile-count { margin: 12px 0 18px; color: #858894; font-size: 12px; }
+    .profile-tab { border-bottom: 2px solid transparent; font-size: 13px; font-weight: 600; }
+    .right-rail { padding: 34px 0 20px; }
+    .rail-card,.mod-card,.settings-card { margin-bottom: 15px; padding: 17px; border: 1px solid #252730; border-radius: 12px; background: #101116; }
+    .rail-card h2,.mod-card h2,.settings-card h2 { margin: 0 0 14px; font-size: 15px; }
+    .trend { display: block; padding: 9px 0; color: var(--accent-light); }
+    .trend small { display: block; margin-top: 4px; color: #777b87; }
+    .rail-note { color: #9295a1; font-size: 12px; line-height: 1.6; }
+    .empty { padding: 38px 20px; color: #989ba6; text-align: center; line-height: 1.7; }
+    .empty strong { display: block; margin-bottom: 6px; color: #e6e7ec; font-size: 16px; }
+
+    /* Settings and verification */
+    .settings-intro { padding: 24px 0 19px; border-bottom: 1px solid #252730; }
+    .settings-grid { display: grid; gap: 15px; padding-top: 17px; }
+    .settings-card { padding: 20px; }
+    .settings-card-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .settings-card-icon { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border: 1px solid rgba(255,77,20,.2); border-radius: 11px; background: var(--accent-soft); color: var(--accent-light); }
+    .settings-card-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    .settings-card-heading h2 { margin: 0; font-size: 14px; }
+    .settings-card-heading p { margin: 4px 0 0; color: #858995; font-size: 11px; }
+    .settings-form,.handle-form { display: grid; gap: 13px; }
+    .settings-form label,.handle-form label,.verification-form label { color: #c5c7d0; font-size: 12px; font-weight: 600; }
+    .settings-form input,.settings-form textarea,.handle-form input,.verification-form textarea,.message-form input,.message-form textarea,.role-select {
+      display: block; width: 100%; margin-top: 7px; padding: 11px 12px; border: 1px solid #30323c;
+      border-radius: 8px; outline: none; background: #0b0c12; color: white;
+    }
+    .settings-form textarea,.verification-form textarea,.message-form textarea { min-height: 85px; resize: vertical; }
+    .settings-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .settings-note { color: #7f8390; font-size: 11px; line-height: 1.55; }
+    .handle-current { display: flex; justify-content: space-between; margin-bottom: 14px; padding: 12px; border: 1px solid #292b34; border-radius: 9px; }
+    .handle-current span { color: #858995; font-size: 11px; }
+    .handle-status { padding: 11px 12px; border: 1px solid #333039; border-radius: 9px; color: #9a9ca8; font-size: 11px; line-height: 1.55; }
+    .settings-error { color: #ff8996; font-size: 12px; }
+    .settings-saved { color: var(--green); font-size: 12px; }
+    .verification-form { display: grid; gap: 12px; }
+    .status-label { color: #aaa; font-size: 12px; }
+    .status-pending { color: #ffbd72; }
+    .status-verified { color: #ff8738; }
+    .status-rejected { color: #ff8996; }
+
+    /* Moderation panel */
+    .mod-section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .mod-section-title small { color: var(--muted); font-size: 11px; }
+    .mod-user { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid #252730; }
+    .mod-user-name { font-weight: 650; }
+    .mod-user-meta { margin-top: 4px; color: #8b8e9a; font-size: 11px; }
+    .mod-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .role-form { display: flex; gap: 6px; align-items: center; }
+    .role-form .field { width: auto; max-width: 220px; margin: 0; }
+    .role-select { width: auto; min-width: 105px; margin: 0; padding: 7px; font-size: 11px; }
+    .role-assignee { display: flex; min-width: 0; align-items: center; gap: 10px; }
+    .role-assignee-copy { display: grid; gap: 3px; min-width: 0; }
+    .role-assignee-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .role-assignee-copy span { color: var(--muted); font-size: 11px; }
+    .role-assignment-preview { display: flex; min-height: 40px; flex: 1 0 100%; align-items: center; gap: 9px; color: #c5c7d0; font-size: 11px; }
+    .application-reason { margin: 10px 0; padding: 11px; border-radius: 8px; background: #0b0c12; color: #c5c7d0; font-size: 12px; line-height: 1.6; }
+    .application-actions { display: flex; gap: 8px; }
+    .application-actions form { flex: 1; }
+    .application-actions button { width: 100%; }
+    .empty-small { padding: 18px 0; color: #858995; font-size: 12px; }
+    .message-list { display: grid; gap: 10px; }
+    .message-bubble { max-width: 82%; padding: 11px 13px; border: 1px solid #292c36; border-radius: 12px; background: #13151c; line-height: 1.55; }
+    .message-bubble.mine { justify-self: end; border-color: #633421; background: #291811; }
+    .message-form { display: grid; gap: 9px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #242630; }
+    .signout-button { padding: 9px 12px; border: 1px solid #38303a; border-radius: 8px; background: transparent; color: #c6c6ce; }
+    .confirm-dialog { width: min(440px,calc(100% - 32px)); padding: 0; border: 1px solid #3b2e32; border-radius: 18px; background: #111218; color: var(--text); box-shadow: 0 28px 100px rgba(0,0,0,.7); }
+    .confirm-dialog::backdrop { background: rgba(4,5,9,.78); backdrop-filter: blur(8px); }
+    .confirm-content { padding: 25px; }
+    .confirm-kicker { margin: 0 0 10px; color: #ff9878; font: 10px "DM Mono",monospace; letter-spacing: .13em; text-transform: uppercase; }
+    .confirm-content h2 { margin: 0; font-size: 21px; letter-spacing: -.04em; }
+    .confirm-content p { margin: 10px 0 0; color: #a6a8b2; line-height: 1.65; }
+    .confirm-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 24px; }
+    .confirm-actions button { min-height: 39px; padding: 0 15px; border: 1px solid #383943; border-radius: 8px; background: #181920; }
+    .confirm-actions .confirm-danger { border-color: rgba(255,83,100,.35); background: linear-gradient(100deg,#c83243,#f14e5e); font-weight: 700; }
+    .verification-notice { width: min(470px,calc(100% - 32px)); padding: 0; border: 1px solid rgba(255,135,56,.45); border-radius: 19px; background: #111218; color: var(--text); box-shadow: 0 28px 100px rgba(0,0,0,.72),0 0 45px rgba(255,112,42,.1); }
+    .verification-notice::backdrop { background: rgba(4,5,9,.8); backdrop-filter: blur(8px); }
+    .verification-notice-content { padding: 27px; }
+    .verification-notice-icon { display: grid; width: 48px; height: 48px; place-items: center; margin-bottom: 17px; border: 1px solid rgba(255,135,56,.35); border-radius: 15px; background: rgba(255,135,56,.12); color: #ff8738; font-size: 23px; }
+    .verification-notice h2 { margin: 0; font-size: 21px; }
+    .verification-notice p { color: #b2b4be; line-height: 1.7; }
+    .verification-notice button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: linear-gradient(100deg,#ff4d14,#ff7040); font-weight: 700; }
+    .termination-reason { width: 155px !important; }
+    .terminated-meta { margin-top: 7px; color: #aeb0bb; font-size: 11px; line-height: 1.7; }
+    .banland-actions { display: flex; justify-content: flex-end; }
+    .unban-button { padding: 8px 12px; border: 1px solid rgba(75,211,154,.35); border-radius: 8px; background: rgba(75,211,154,.08); color: #75dfaf; font-weight: 650; }
+
+    @keyframes card-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes heart-pop { 50% { transform: scale(1.35); } }
+    @keyframes orbit { to { rotate: 360deg; } }
+    @keyframes maintenance-drift { to { transform: translate3d(22px,18px,0) rotate(4deg) scale(1.04); } }
+    @keyframes glow-float { from { transform: translate3d(-20px,-12px,0) scale(.9); opacity: .5; } to { transform: translate3d(25px,24px,0) scale(1.12); opacity: 1; } }
+    @keyframes dots-drift { from { translate: 0 0; opacity: .38; } to { translate: 18px 22px; opacity: .9; } }
+    @keyframes pulse { 50% { opacity: .48; } }
+    @keyframes progress-glow { to { box-shadow: 0 0 18px rgba(255,77,20,1); } }
+
+    @media (max-width: 1050px) {
+      .app-shell { grid-template-columns: 205px minmax(0,760px); gap: 24px; }
+    }
+    @media (max-width: 720px) {
+      .maintenance-page { padding: 88px 18px 32px; }
+      .maintenance-wordmark { top: 22px; left: 20px; }
+      .maintenance-status-top { top: 29px; right: 20px; max-width: 145px; font-size: 8px; text-align: right; }
+      .maintenance-card { grid-template-columns: 1fr; }
+      .maintenance-main { padding: 32px 26px 28px; }
+      .maintenance-side { padding: 26px; border-top: 1px solid #302638; border-left: 0; }
+      .maintenance-deployment { margin-top: 27px; }
+      .landing-header { width: calc(100% - 36px); height: 72px; }
+      .landing-nav { gap: 15px; }
+      .landing-nav a:first-child { display: none; }
+      .legal-content { padding-top: 48px; }
+      .legal-header { width: calc(100% - 32px); }
+      .legal-nav { gap: 12px; font-size: 11px; }
+      .landing-hero { min-height: calc(100vh - 73px); padding-bottom: 55px; }
+      .landing-description { font-size: 14px; }
+      .app-shell { display: block; padding: 0 16px 74px; }
+      .sidebar { position: fixed; z-index: 10; top: auto; right: 0; bottom: 0; left: 0; width: 100%; height: 62px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #242630; border-right: 0; background: rgba(9,10,15,.97); }
+      .brand,.profile-mini,.create-btn,.sidebar-bottom,.nav-link span { display: none; }
+      .nav { display: flex; height: 100%; justify-content: space-around; gap: 0; }
+      .nav-link { min-width: 42px; min-height: 44px; justify-content: center; padding: 0 10px; }
+      .feed { padding-top: 8px; }
+      .post-body,.post-image,.comment-list,.comment-form,.poll-card,.reaction-bar,.post-interaction-error { margin-left: 0; }
+      .post-image { max-width: 100%; }
+      .auth-card { padding: 30px 24px; }
+      .settings-card { padding: 16px; }
+      .mod-user { grid-template-columns: 1fr; }
+      .mod-controls { justify-content: flex-start; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="7.3"/><path d="m16.2 16.2 5 5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1.08 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.1a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1.08Z"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 8.7c0 5.5-8.8 11-8.8 11s-8.8-5.5-8.8-11A4.7 4.7 0 0 1 12 6.4a4.7 4.7 0 0 1 8.8 2.3Z"/></symbol>
+    <symbol id="i-repost" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></symbol>
+    <symbol id="i-comment" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.4 9.4 0 0 1-4-.9L3 21l1.8-4.4A8 8 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5Z"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 16V3"/><path d="m7 8 5-5 5 5"/><path d="M5 13v7h14v-7"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v3"/></symbol>
+    <symbol id="i-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="m2 7 5 4 5-7 5 7 5-4-2 12H4L2 7Z" fill="currentColor" stroke="currentColor"/><path d="M5 22h14" fill="none" stroke="currentColor"/></symbol>
+    <symbol id="i-hammer" viewBox="0 0 24 24"><path d="m14 6 4-4 4 4-4 4M13 7l4 4-8 8a2.8 2.8 0 0 1-4-4l8-8ZM2 22l4-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" fill="currentColor" stroke="currentColor"/><path d="m8.5 12 2.2 2.2 4.8-4.8" fill="none" stroke="#08090d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-verified" viewBox="0 0 24 24"><path d="M12 2.5 14.4 4l2.8-.2 1.2 2.5 2.5 1.2-.2 2.8 1.5 2.4-1.5 2.4.2 2.8-2.5 1.2-1.2 2.5-2.8-.2-2.4 1.5-2.4-1.5-2.8.2-1.2-2.5-2.5-1.2.2-2.8L2 12l1.5-2.4-.2-2.8 2.5-1.2L7 3.1l2.8.2L12 2.5Z" fill="currentColor" stroke="currentColor"/><path d="m8.5 12 2.2 2.2 4.8-4.8" fill="none" stroke="#08090d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+
+  <% if (page === "landing") { %>
+    <main class="landing-page">
+      <header class="landing-header">
+        <a class="landing-brand" href="/"><img src="/images/chirpy.png" alt="Chirpy" /><span>CHIRPY</span></a>
+        <nav class="landing-nav" aria-label="Main navigation">
+          <a href="#community">Community</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/login" class="landing-signin">Sign in</a>
+        </nav>
+      </header>
+      <section class="landing-hero" id="community">
+        <div class="landing-logo"><img src="/images/chirpy.png" alt="Chirpy" /></div>
+        <p class="landing-kicker">A community built around you</p>
+        <h1 class="landing-title">Find your people.<br /><span>Start the conversation.</span></h1>
+        <p class="landing-description">A place to share what matters, discover new perspectives, and keep up with the conversations that bring us together.</p>
+        <a class="landing-cta" href="/auth/discord">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.7 5.2a18.2 18.2 0 0 0-4.5-1.4l-.6 1.2a16.8 16.8 0 0 0-5.2 0l-.6-1.2a18.2 18.2 0 0 0-4.5 1.4C1.5 9.4.7 13.5 1.1 17.5a18.3 18.3 0 0 0 5.5 2.8l1.2-1.9-1.9-.9.5-.4a13 13 0 0 0 11.2 0l.5.4-1.9.9 1.2 1.9a18.3 18.3 0 0 0 5.5-2.8c.5-4.6-.8-8.7-3.2-12.3ZM8.7 14.8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2Zm6.6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2Z"/></svg>
+          Continue with Discord
+        </a>
+        <p class="landing-footnote">Your community is waiting.</p>
+        <nav class="landing-legal-links" aria-label="Legal information"><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a></nav>
+      </section>
+    </main>
+
+  <% } else if (page === "terms" || page === "privacy") { %>
+    <main class="legal-page">
+      <header class="legal-header">
+        <a class="legal-brand" href="/"><img src="/images/chirpy.png" alt="Chirpy" /><span>CHIRPY</span></a>
+        <nav class="legal-nav" aria-label="Legal navigation"><a href="/">Home</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></nav>
+      </header>
+      <% if (page === "terms") { %>
+        <article class="legal-content">
+          <p class="eyebrow">Chirpy · Service terms</p>
+          <h1>Terms of Service</h1>
+          <p class="legal-intro">These terms explain the rules for using Chirpy, a community service with Discord sign-in, profiles, posts, images, messages, reactions, and polls. By accessing Chirpy, you agree to these terms. If you do not agree, do not use the service.</p>
+          <section><h2>1. Eligibility and your account</h2><p>Chirpy is intended for people who are at least 13 years old in the United States. You may not use Chirpy if you are under 13. If you are 13 or older but have not reached the age of majority where you live, you may use Chirpy only with the involvement and permission of a parent or legal guardian. You must also meet Discord’s applicable minimum-age requirements and follow Discord’s terms. You are responsible for activity under your account and for keeping access to your Discord account secure. Sign-in is provided by Discord; Chirpy does not receive or store your Discord password.</p></section>
+          <section><h2>2. Community content and conduct</h2><p>You are responsible for content you submit, including profile details, posts, uploaded images, comments, messages, reactions, and poll questions or options. You must have the rights and permissions needed to submit it. Do not use Chirpy to break the law, threaten or harass people, share another person’s private information without permission, impersonate others, distribute malware, infringe intellectual-property rights, or interfere with the service. Do not attempt to bypass access controls or misuse the service.</p></section>
+          <section><h2>3. Your content and permission to operate Chirpy</h2><p>You retain any rights you have in your content. You give Chirpy a limited, non-exclusive permission to host, store, reproduce, and display content as needed to provide and maintain the features you use, including showing posts and images to other users and storing poll votes and reactions. This permission ends when the content is removed from active service, subject to copies retained as described in the Privacy Policy and technical backups or records.</p></section>
+          <section><h2>4. Moderation and account restrictions</h2><p>Chirpy staff may review content and accounts, remove or hide posts, mute accounts, change access, or terminate accounts when reasonably needed to enforce these terms, respond to safety concerns, or protect the service. Moderation decisions may be made with or without advance notice where permitted by law. Terminated accounts lose access; related records may remain in the database, including hidden content and moderation records, as explained in the Privacy Policy.</p></section>
+          <section><h2>5. Intellectual property and reports</h2><p>Chirpy’s name, logo, interface, and original service materials are owned by or licensed to the service operator and are protected by applicable law. These terms do not grant you ownership of them. If you believe content on Chirpy infringes your rights, contact the service operator using the contact information described below with enough detail to identify the content and your concern. No designated notice agent or legal contact has been configured yet.</p></section>
+          <section><h2>6. Third-party services and availability</h2><p>Chirpy depends on third parties, including Discord for authentication and the MongoDB service configured by the operator for application data. Those services have their own terms, privacy practices, availability, and security controls. Chirpy may be changed, interrupted, or discontinued. Features are provided as available, and the operator does not promise uninterrupted service, error-free operation, or permanent availability of content.</p></section>
+          <section><h2>7. Disclaimers and liability</h2><p>To the fullest extent allowed by law, Chirpy is provided “as is” and “as available,” without warranties of any kind, whether express, implied, or statutory, including implied warranties of merchantability, fitness for a particular purpose, and non-infringement. To the fullest extent allowed by law, the operator will not be liable for indirect, incidental, special, consequential, exemplary, or punitive damages, or for loss of data, profits, goodwill, or service access, arising from use of Chirpy. Nothing in these terms limits liability that cannot legally be limited or excludes rights that cannot legally be waived.</p></section>
+          <section><h2>8. Changes and governing rules</h2><p>These terms may be updated as Chirpy changes or legal requirements evolve. The current version will be posted at this URL; continued use after an update takes effect means you accept the revised terms. These terms are intended to be governed by applicable United States law and, where applicable, the laws of the state in which the service operator is established, without displacing mandatory consumer protections that apply to you.</p></section>
+          <div class="legal-contact-note"><strong>Operator contact:</strong> Site operator contact information has not been supplied or configured. It must be added before production use so users can submit legal, safety, or account requests. These terms are general service information, not legal advice.</div>
+        </article>
+      <% } else { %>
+        <article class="legal-content">
+          <p class="eyebrow">Chirpy · Your information</p>
+          <h1>Privacy Policy</h1>
+          <p class="legal-intro">This policy describes information handled by Chirpy, how it is used, and choices currently available. It applies to the Chirpy website and its posts, profiles, images, internal messages, reactions, polls, and moderation features.</p>
+          <section><h2>1. Who operates Chirpy</h2><p>The service operator has not supplied a legal business name, mailing address, or privacy contact. This page does not invent one. “Chirpy” below means the operator of this application. Operator contact information must be configured and published before production so people can direct privacy or safety requests to a responsible contact.</p></section>
+          <section><h2>2. Information the service handles</h2><ul><li><strong>Discord sign-in and profile:</strong> Discord account ID, username, display name, and avatar details returned by Discord’s identity sign-in. The app uses these to create and maintain your Chirpy account and profile.</li><li><strong>Content and activity:</strong> your Chirpy handle, display name, bio, posts, uploaded image bytes, comments, internal messages, likes, reposts, bookmarks, emoji reactions, poll questions/options and votes.</li><li><strong>Safety and service records:</strong> staff role, verification application and decision status, mute or termination status, and moderation audit records needed to administer the service.</li><li><strong>Technical data:</strong> the app uses an HttpOnly session cookie and keeps session identifiers and short-lived OAuth state in server memory. The hosting platform or network providers may generate technical or request logs according to their own settings; the operator has not configured a public log-retention statement.</li></ul></section>
+          <section><h2>3. How information is used</h2><p>Information is used to authenticate users, operate accounts and profiles, display community content, save messages and interactions, record poll votes, administer moderation and verification, protect service integrity, and respond to operational or legal needs. Discord profile images may be loaded from Discord’s content-delivery network. The application code contains no advertising or analytics feature, but third-party hosting and infrastructure may process technical data under their own terms.</p></section>
+          <section><h2>4. Storage, sharing, and service providers</h2><p>Application records, including account data, user content, image bytes, messages, reactions, polls, and moderation records, are stored in the MongoDB database configured by the operator. Discord handles the authentication flow and supplies identity data; the app does not store your Discord password or retain the OAuth access token after retrieving your identity. The app is hosted on infrastructure selected by the operator. The specific hosting provider, processing locations, and provider retention settings have not been identified on this site. Data may be processed by those providers to deliver their services or as required by law; their own privacy policies apply.</p><p>The app does not provide a public directory of recipients or a configured data-sale integration. Content you post or send may be visible to the recipients or users allowed by the feature and may be copied by people who can access it.</p></section>
+          <section><h2>External resources</h2><p>The site loads typefaces from Google Fonts and may load Discord-hosted avatar images from Discord’s content-delivery network. Those providers may receive ordinary connection data, such as your IP address and browser request details, when your browser requests those resources.</p></section>
+          <section><h2>5. Retention and deletion</h2><p>Account and content records are retained in the configured database while the account and service operate. The app currently has no self-service account deletion or retention-period controls. Staff termination hides an account’s posts from the active feed and disables access but does not hard-delete the underlying account or post records. Moderation records may also be retained. Uploaded image data is stored with its post. Database backups, if enabled by the configured provider, may retain copies according to that provider’s settings, which are not specified here.</p><p>You may request access, correction, or deletion by contacting the operator, but no contact details or request workflow are currently configured. Requests cannot be reliably processed until the operator publishes a contact method. Applicable legal requirements may affect what can be deleted or retained.</p></section>
+          <section><h2>6. Security</h2><p>The service uses reasonable application measures such as Discord-based authentication, an HttpOnly session cookie, and server-side role checks. No online service or storage system can be guaranteed secure, and the operator cannot promise that unauthorized access, loss, or disclosure will never occur. Avoid sending highly sensitive information through Chirpy messages or posts.</p></section>
+          <section><h2>7. Children and COPPA</h2><p>Chirpy is not intended for children under 13 in the United States, and the operator does not knowingly seek to collect personal information from a child under 13. If the operator learns that a child under 13 has provided personal information, the operator should take steps to delete it. A parent or guardian who believes a child’s information was submitted should contact the operator; contact details have not yet been configured and must be supplied before production. Users must also satisfy Discord’s applicable age requirements.</p></section>
+          <section><h2>8. U.S. privacy rights and policy changes</h2><p>Depending on where you live, state privacy laws may provide rights concerning personal information, such as access, correction, deletion, or opting out of certain processing. The app does not currently implement an automated privacy-request portal. Contact the operator once contact information is published to submit a request; the operator will assess and respond as required by applicable law. This policy may change as the service or its providers change. The updated version will be posted at this URL.</p></section>
+          <div class="legal-contact-note"><strong>Privacy contact:</strong> Site operator contact information has not been supplied or configured. This is an explicit operational gap, not a promise that a request portal or dedicated privacy officer exists. This policy is informational and is not legal advice.</div>
+        </article>
+      <% } %>
+    </main>
+
+  <% } else if (page === "maintenance") { %>
+    <main class="maintenance-page">
+      <div class="ambient-glow one" aria-hidden="true"></div>
+      <div class="ambient-glow two" aria-hidden="true"></div>
+      <div class="maintenance-dots top" aria-hidden="true"></div>
+      <div class="maintenance-dots bottom" aria-hidden="true"></div>
+      <a class="maintenance-wordmark" href="/"><img src="/images/chirpy.png?v=1" alt="" /><span>CHIRPY</span></a>
+      <div class="maintenance-status-top">Platform upgrades in progress</div>
+
+      <section class="maintenance-card">
+        <div class="maintenance-main">
+          <div class="maintenance-brand">
+            <div class="maintenance-logo"><img src="/images/chirpy.png?v=1" alt="Chirpy" /></div>
+            <div class="maintenance-brand-copy"><p class="eyebrow">System notice</p><strong>CHIRPY</strong></div>
+          </div>
+          <p class="maintenance-kicker">A better experience is loading</p>
+          <h1 class="maintenance-title">Under<br />Maintenance.</h1>
+          <p class="maintenance-description">We’re refining Chirpy behind the scenes. The platform will return shortly with a cleaner, faster, and more polished experience.</p>
+        </div>
+        <aside class="maintenance-side">
+          <p class="maintenance-side-label">Current status</p>
+          <div class="maintenance-status-box"><strong>Upgrade in progress</strong><p>Core services are temporarily unavailable while updates are applied.</p></div>
+          <div class="maintenance-deployment"><span>Deployment</span><strong><%= maintenanceSettings.progress %>%</strong></div>
+          <progress class="maintenance-progress" aria-label="Deployment progress" max="100" value="<%= maintenanceSettings.progress %>"><%= maintenanceSettings.progress %>%</progress>
+          <button id="openAdmin" class="maintenance-admin" type="button">Admin access</button>
+          <div id="adminForm" hidden>
+            <input id="adminPassword" class="maintenance-password" type="password" placeholder="Administrator password" autocomplete="current-password" />
+            <p id="adminError" class="maintenance-error" aria-live="polite"></p>
+            <button id="verifyAdmin" class="maintenance-admin" type="button">Continue</button>
+          </div>
+          <p class="maintenance-thanks">Thank you for your patience while we make Chirpy better.</p>
+        </aside>
+      </section>
+    </main>
+    <script>
+      const openAdmin = document.getElementById("openAdmin");
+      const adminForm = document.getElementById("adminForm");
+      const passwordField = document.getElementById("adminPassword");
+      const adminError = document.getElementById("adminError");
+      const verifyButton = document.getElementById("verifyAdmin");
+
+      openAdmin.addEventListener("click", () => {
+        openAdmin.hidden = true;
+        adminForm.hidden = false;
+        passwordField.focus();
+      });
+
+      async function verifyAdmin() {
+        adminError.textContent = "";
+        verifyButton.disabled = true;
+        verifyButton.textContent = "Checking…";
+        try {
+          const response = await fetch("/admin/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: passwordField.value })
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            adminError.textContent = result.message || "Could not verify password.";
+            return;
+          }
+          window.location.href = result.redirect;
+        } catch {
+          adminError.textContent = "Can't reach the server. Check that it is running.";
+        } finally {
+          verifyButton.disabled = false;
+          verifyButton.textContent = "Continue";
+        }
+      }
+
+      verifyButton.addEventListener("click", verifyAdmin);
+      passwordField.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") verifyAdmin();
+      });
+    </script>
+
+  <% } else if (page === "login") { %>
+    <main class="auth-page">
+      <a class="auth-brand" href="/"><img src="/images/chirpy.png?v=1" alt="" /> CHIRPY</a>
+      <section class="auth-card">
+        <div class="auth-logo"><img src="/images/chirpy.png?v=1" alt="Chirpy" /></div>
+        <p class="eyebrow">Your Chirpy account</p>
+        <h1>Sign in with Discord</h1>
+        <p>Connect your Discord account to continue. New users choose a Chirpy handle after signing in.</p>
+        <% if (error) { %><p class="form-error"><%= error %></p><% } %>
+        <a class="auth-btn" href="/auth/discord">Continue with Discord</a>
+        <a class="back-home" href="/">← Back to Chirpy</a>
+      </section>
+    </main>
+
+  <% } else if (page === "onboarding") { %>
+    <main class="auth-page">
+      <a class="auth-brand" href="/"><img src="/images/chirpy.png?v=1" alt="" /> CHIRPY</a>
+      <section class="auth-card">
+        <div class="auth-logo"><img src="/images/chirpy.png?v=1" alt="Chirpy" /></div>
+        <p class="eyebrow">Make it yours</p>
+        <h1>Set up your profile</h1>
+        <p>Choose the name and handle people will see when you join the conversation.</p>
+        <div class="onboarding-meta"><span></span><small>Profile setup · 1 of 1</small><span></span></div>
+        <% if (error) { %><p class="form-error"><%= error %></p><% } %>
+        <form method="POST" action="/onboarding">
+          <label for="displayName">Display name</label>
+          <input id="displayName" name="displayName" class="auth-input" maxlength="40" value="<%= displayName || user.displayName %>" required />
+          <label for="handle">Your handle</label>
+          <div class="handle-prefix"><input id="handle" name="handle" class="auth-input" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="your_handle" value="<%= handle %>" autocomplete="off" required /></div>
+          <p class="input-hint">3–20 characters. Letters, numbers, and underscores.</p>
+          <div class="form-footnote"><svg><use href="#i-lock"/></svg><span>Your handle can be changed later. Handle changes have a 14-day cooldown.</span></div>
+          <button class="auth-btn" type="submit">Create my profile</button>
+        </form>
+      </section>
+    </main>
+
+  <% } else if (page === "app") { %>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/app"><img src="/images/chirpy.png?v=1" alt="" /><span class="brand-name">CHIRPY</span></a>
+        <div class="profile-mini"><div class="avatar small"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></div><div class="mini-name"><%= user.displayName %><span class="mini-badges"><% if (user.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span><% } else if (user.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span><% } else if (user.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %><% if (["owner","manager","moderator"].includes(user.role) || user.verificationStatus === "verified") { %><span class="badge <%= user.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %></span><span>@<%= user.handle %></span></div></div>
+        <nav class="nav" aria-label="Main navigation">
+          <a class="nav-link <%= activeTab === 'home' ? 'active' : '' %>" href="/app"><svg><use href="#i-home"/></svg><span>Home</span></a>
+          <a class="nav-link <%= activeTab === 'explore' ? 'active' : '' %>" href="/app?tab=explore"><svg><use href="#i-search"/></svg><span>Explore</span></a>
+          <a class="nav-link <%= activeTab === 'messages' ? 'active' : '' %>" href="/app?tab=messages"><svg><use href="#i-mail"/></svg><span>Messages</span></a>
+          <a class="nav-link <%= activeTab === 'bookmarks' ? 'active' : '' %>" href="/app?tab=bookmarks"><svg><use href="#i-bookmark"/></svg><span>Bookmarks</span></a>
+          <a class="nav-link <%= activeTab === 'profile' ? 'active' : '' %>" href="/app?tab=profile"><svg><use href="#i-user"/></svg><span>Profile</span></a>
+          <a class="nav-link settings-link <%= activeTab === 'settings' ? 'active' : '' %>" href="/app?tab=settings"><svg viewBox="0 0 24 24"><use href="#i-settings"/></svg><span>Settings</span></a>
+          <% if (["moderator","manager","owner"].includes(user.role)) { %><a class="nav-link <%= activeTab === 'moderation' ? 'active' : '' %>" href="/moderation"><svg><use href="#i-hammer"/></svg><span>Mod panel</span></a><% } %>
+          <% if (["manager","owner"].includes(user.role)) { %><a class="nav-link <%= activeTab === 'banland' ? 'active' : '' %>" href="/app?tab=banland"><svg><use href="#i-shield"/></svg><span>Banland</span></a><% } %>
+        </nav>
+        <% if (activeTab === "home" || activeTab === "explore") { %><button class="create-btn" id="openComposer" type="button">＋ Create post</button><% } %>
+        <div class="sidebar-bottom"><div class="avatar small"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></div><div class="mini-name"><%= user.displayName %><span class="mini-badges"><% if (user.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span><% } else if (user.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span><% } else if (user.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %><% if (["owner","manager","moderator"].includes(user.role) || user.verificationStatus === "verified") { %><span class="badge <%= user.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %></span><span>@<%= user.handle %></span></div><form method="POST" action="/logout"><button class="logout-btn" aria-label="Sign out">↗</button></form></div>
+      </aside>
+
+      <main class="feed">
+        <div class="feed-top">
+          <% if (activeTab === "explore") { %><form class="search-form" method="GET" action="/app"><input type="hidden" name="tab" value="explore" /><input class="search-input" name="q" value="<%= query %>" placeholder="Search posts and people…" /></form>
+          <% } else { %><div style="flex:1;font-weight:600"><%= activeTab === "home" ? "Home" : activeTab === "profile" ? "Profile" : activeTab === "banland" ? "Banland" : activeTab.charAt(0).toUpperCase() + activeTab.slice(1) %></div><% } %>
+        </div>
+        <template id="pollComposerTemplate">
+          <div class="composer-poll-row"><button class="poll-toggle" type="button" aria-pressed="false">＋ Add poll</button></div>
+          <div class="poll-editor" hidden>
+            <input class="poll-question" maxlength="180" placeholder="Ask a question" aria-label="Poll question" />
+            <input class="poll-option" maxlength="80" placeholder="Option 1" aria-label="Poll option 1" />
+            <input class="poll-option" maxlength="80" placeholder="Option 2" aria-label="Poll option 2" />
+            <input class="poll-option" maxlength="80" placeholder="Option 3 (optional)" aria-label="Poll option 3" />
+            <input class="poll-option" maxlength="80" placeholder="Option 4 (optional)" aria-label="Poll option 4" />
+          </div>
+        </template>
+
+        <% if (activeTab === "home") { %><div class="tabs"><a class="tab active" href="/app">For you</a><a class="tab" href="/app?tab=explore">Explore</a></div><% } %>
+
+        <% if (activeTab === "profile") { %>
+          <section class="profile-header">
+            <div class="profile-info"><div class="avatar large"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></div><div><h2><%= user.displayName %>
+              <% if (user.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span>
+              <% } else if (user.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span>
+              <% } else if (user.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %>
+              <% if (["owner","manager","moderator"].includes(user.role) || user.verificationStatus === "verified") { %><span class="badge <%= user.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %>
+            </h2><div class="muted">@<%= user.handle %></div></div></div>
+            <p class="profile-bio"><%= user.bio || "No bio yet. Add one in Settings." %></p>
+            <div class="profile-count">Posts and reposts from your account</div>
+            <nav class="profile-tabs"><a class="profile-tab <%= profileView === 'posts' ? 'active' : '' %>" href="/app?tab=profile&profileView=posts">Posts</a><a class="profile-tab <%= profileView === 'reposts' ? 'active' : '' %>" href="/app?tab=profile&profileView=reposts">Reposts</a></nav>
+          </section>
+          <button class="create-btn" id="openComposer" type="button" style="width:100%;margin:16px 0">＋ Create post</button>
+          <form class="composer" method="POST" action="/posts" id="composer" hidden><div class="composer-row"><div class="composer-identity"><div class="avatar"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></div><div class="composer-label"><strong><%= user.displayName %></strong><span><% if (user.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span><% } else if (user.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span><% } else if (user.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %><% if (["owner","manager","moderator"].includes(user.role) || user.verificationStatus === "verified") { %><span class="badge <%= user.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %></span></div></div><textarea name="text" maxlength="500" placeholder="What's happening?"></textarea></div><div class="composer-upload-row"><label class="image-upload-button">＋ Add image<input class="image-upload-input" type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp" /></label><span class="upload-name" aria-live="polite">PNG, JPG, GIF or WebP · up to 5 MB</span></div><div class="upload-error" role="alert" hidden></div><div class="image-preview" hidden><img alt="Selected image preview" /><button type="button" class="remove-image">Remove image</button></div><div class="composer-bottom"><span class="char-count">0/500</span><button class="post-submit" type="submit">Post</button></div></form>
+        <% } %>
+
+        <% if (activeTab === "home" || activeTab === "explore") { %>
+          <form class="composer" method="POST" action="/posts" id="composer" hidden><div class="composer-row"><div class="composer-identity"><div class="avatar"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></div><div class="composer-label"><strong><%= user.displayName %></strong><span><% if (user.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span><% } else if (user.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span><% } else if (user.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %><% if (["owner","manager","moderator"].includes(user.role) || user.verificationStatus === "verified") { %><span class="badge <%= user.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %></span></div></div><textarea name="text" maxlength="500" placeholder="What's happening?"></textarea></div><div class="composer-upload-row"><label class="image-upload-button">＋ Add image<input class="image-upload-input" type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp" /></label><span class="upload-name" aria-live="polite">PNG, JPG, GIF or WebP · up to 5 MB</span></div><div class="upload-error" role="alert" hidden></div><div class="image-preview" hidden><img alt="Selected image preview" /><button type="button" class="remove-image">Remove image</button></div><div class="composer-bottom"><span class="char-count">0/500</span><button class="post-submit" type="submit">Post</button></div></form>
+        <% } %>
+
+        <% if (activeTab === "settings") { %>
+          <header class="settings-intro"><h1>Settings</h1><p>Manage your profile, handle, and verification.</p></header>
+          <div class="settings-grid">
+            <% if (saved) { %><p class="settings-saved">Your changes have been saved.</p><% } %>
+            <section class="settings-card">
+              <div class="settings-card-heading"><div class="settings-card-icon"><svg><use href="#i-profile"/></svg></div><div><h2>Profile details</h2><p>Update the information people see on Chirpy.</p></div></div>
+              <form class="settings-form" method="POST" action="/settings">
+                <label>Display name<input name="displayName" maxlength="40" value="<%= user.displayName %>" required /></label>
+                <label>Bio<textarea name="bio" maxlength="160"><%= user.bio %></textarea></label>
+                <div class="settings-actions"><span class="settings-note">Discord: @<%= user.username %></span><button class="post-submit">Save profile</button></div>
+              </form>
+            </section>
+
+            <section class="settings-card">
+              <div class="settings-card-heading"><div class="settings-card-icon"><svg><use href="#i-settings"/></svg></div><div><h2>Username</h2><p>Change your unique handle once every 14 days.</p></div></div>
+              <div class="handle-current"><span>Current handle</span><strong>@<%= user.handle %></strong></div>
+              <% if (handleError) { %><p class="settings-error"><%= handleError %></p><% } %>
+              <form class="handle-form" method="POST" action="/settings/handle">
+                <label>New handle<input name="handle" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="new_handle" required /></label>
+                <div class="handle-status"><%= handleChangeAllowed ? "Handle changes are available now. A successful change starts a new 14-day cooldown." : "You can change your handle again on " + new Date(handleChangeAvailableAt).toLocaleDateString() + "." %></div>
+                <div class="settings-actions"><span class="settings-note">3–20 letters, numbers, or underscores.</span><button class="post-submit" <%= handleChangeAllowed ? "" : "disabled" %>>Update handle</button></div>
+              </form>
+            </section>
+
+            <section class="settings-card">
+              <div class="settings-card-heading"><div class="settings-card-icon"><svg><use href="#i-verified"/></svg></div><div><h2>Verification</h2><p>Apply for an orange verified badge beside your name. Staff emblems are separate and do not grant verified status.</p></div></div>
+              <% if (user.verificationStatus === "verified") { %><p class="status-label status-verified">Your account is verified.</p>
+              <% } else if (user.verificationStatus === "pending") { %><p class="status-label status-pending">Your application is pending review.</p>
+              <% } else { %>
+                <% if (user.verificationStatus === "rejected") { %><p class="status-label status-rejected">Your last application was not approved. You may apply again.</p><% } %>
+                <form class="verification-form" method="POST" action="/settings/verification">
+                  <label>Tell us why your account should be verified<textarea name="reason" minlength="20" maxlength="500" required placeholder="Share relevant public identity or authenticity details."></textarea></label>
+                  <button class="post-submit">Submit verification application</button>
+                </form>
+              <% } %>
+            </section>
+            <section class="settings-card"><strong>Sign out</strong><form method="POST" action="/logout" style="margin-top:12px"><button class="signout-button">Sign out</button></form></section>
+          </div>
+        <% } %>
+
+        <% if (activeTab === "moderation") { %>
+          <div class="feed-heading"><h1>Moderation</h1><p>Staff tools, account roles, and verification review.</p></div>
+          <% if (["manager","owner"].includes(user.role)) { %><nav class="profile-tabs" aria-label="Moderation tools"><a class="profile-tab active" href="/app?tab=moderation">Moderation</a><a class="profile-tab" href="/app?tab=banland">Banland</a></nav><% } %>
+          <section class="mod-card">
+            <div class="mod-section-title"><h2>Maintenance mode</h2><small><%= maintenanceSettings.enabled ? "Currently on" : "Currently off" %></small></div>
+            <% if (["owner","manager"].includes(user.role)) { %>
+              <p class="rail-note">Control the public maintenance page and its progress indicator.</p>
+              <form class="settings-form" method="POST" action="/moderation/maintenance">
+                <label>Site availability
+                  <select class="field" name="enabled">
+                    <option value="true" <%= maintenanceSettings.enabled ? "selected" : "" %>>Maintenance on</option>
+                    <option value="false" <%= maintenanceSettings.enabled ? "" : "selected" %>>Maintenance off</option>
+                  </select>
+                </label>
+                <label>Progress percentage
+                  <input class="field" type="number" name="progress" min="0" max="100" step="1" value="<%= maintenanceSettings.progress %>" required />
+                </label>
+                <div class="settings-actions"><span class="settings-note">Only managers and owners can change these settings.</span><button class="post-submit">Save maintenance settings</button></div>
+              </form>
+            <% } else { %>
+              <p class="rail-note">Maintenance is <%= maintenanceSettings.enabled ? "on" : "off" %>. Managers and owners can change this setting.</p>
+            <% } %>
+          </section>
+          <% if (["owner","manager","moderator"].includes(user.role)) { %>
+            <section class="mod-card">
+              <div class="mod-section-title"><h2>Verification applications</h2><small><%= applications.length %> pending</small></div>
+              <% if (!applications.length) { %><div class="empty-small">No applications need review.</div><% } %>
+              <% applications.forEach((applicant) => { %>
+                <div class="mod-user" style="display:block">
+                  <div class="mod-user-name"><%= applicant.displayName %> · @<%= applicant.handle || "no-handle" %></div>
+                  <div class="application-reason"><%= applicant.verificationReason %></div>
+                  <div class="application-actions">
+                    <form method="POST" action="/moderation/verification/<%= applicant._id %>"><input type="hidden" name="decision" value="approve" /><button class="post-submit">Approve</button></form>
+                    <form method="POST" action="/moderation/verification/<%= applicant._id %>"><input type="hidden" name="decision" value="reject" /><button class="mod-button danger">Reject</button></form>
+                  </div>
+                </div>
+              <% }) %>
+            </section>
+          <% } %>
+
+          <% if (["owner","manager"].includes(user.role)) { %>
+            <section class="mod-card">
+              <div class="mod-section-title"><h2>Verified accounts</h2><small><%= verifiedUsers.length %> listed</small></div>
+              <% if (!verifiedUsers.length) { %><div class="empty-small">No verified non-staff accounts.</div><% } %>
+              <% verifiedUsers.forEach((target) => { %>
+                <div class="mod-user">
+                  <div>
+                    <div class="mod-user-name"><%= target.displayName || target.username %> · @<%= target.handle || "no-handle" %></div>
+                    <div class="mod-user-meta">Discord <%= target.discordId %> · Verified account</div>
+                  </div>
+                  <form method="POST" action="/moderation/users/<%= target._id %>/verification/remove" class="confirm-action" data-confirm-title="Remove verification?" data-confirm-message="The verified badge will be removed. The account owner will see a notice the next time they open Chirpy.">
+                    <button class="mod-button danger">Remove verification</button>
+                  </form>
+                </div>
+              <% }) %>
+            </section>
+          <% } %>
+
+          <% if (["owner","manager"].includes(user.role)) { %>
+            <section class="mod-card">
+              <% const safePendingRoleAssignments = typeof pendingRoleAssignments === "undefined" ? [] : pendingRoleAssignments; %>
+              <div class="mod-section-title"><h2>Manage staff by Discord ID</h2><small><%= user.role === "owner" ? "All roles" : "Moderators only" %></small></div>
+              <p class="rail-note">Role assignments are saved for users who have not signed in yet.</p>
+              <form class="role-form" method="POST" action="/moderation/roles">
+                <input class="field" name="discordId" inputmode="numeric" pattern="[0-9]{17,20}" maxlength="20" placeholder="Discord user ID" required />
+                <div class="role-assignment-preview" id="roleAssignmentPreview" role="status" aria-live="polite" hidden></div>
+                <select class="role-select" name="role" required>
+                  <option value="moderator">Moderator</option>
+                  <option value="user">Remove staff role</option>
+                  <% if (user.role === "owner") { %><option value="manager">Manager</option><option value="owner">Owner</option><% } %>
+                </select>
+                <button class="role-button">Save role</button>
+              </form>
+              <% if (safePendingRoleAssignments.length) { %>
+                <div class="mod-section-title" style="margin-top:18px"><h2>Waiting for first sign-in</h2><small><%= safePendingRoleAssignments.length %> pending</small></div>
+                <% safePendingRoleAssignments.forEach((assignment) => { const assignedUser = roleAssignmentUserMap && roleAssignmentUserMap[assignment.discordId]; %>
+                  <div class="mod-user">
+                    <div class="role-assignee">
+                      <% if (assignedUser) { %><div class="avatar small"><img src="<%= avatarUrl(assignedUser) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= (assignedUser.displayName || assignedUser.username || "?").slice(0,1).toUpperCase() %></span></div><% } %>
+                      <div class="role-assignee-copy">
+                        <% if (assignedUser) { %><strong><%= assignedUser.displayName || assignedUser.username %></strong><span>@<%= assignedUser.username %> · Discord <%= assignment.discordId %></span>
+                        <% } else { %><strong>Awaiting first Discord sign-in</strong><span>Discord ID <%= assignment.discordId %></span><% } %>
+                        <span>Assigned role: <%= assignment.role %></span>
+                      </div>
+                    </div>
+                    <form class="role-form" method="POST" action="/moderation/roles">
+                      <input type="hidden" name="discordId" value="<%= assignment.discordId %>" />
+                      <select class="role-select" name="role" aria-label="Change pending role for Discord ID <%= assignment.discordId %>">
+                        <option value="user">Remove role</option>
+                        <option value="moderator" <%= assignment.role === "moderator" ? "selected" : "" %>>Moderator</option>
+                        <% if (user.role === "owner") { %><option value="manager" <%= assignment.role === "manager" ? "selected" : "" %>>Manager</option><option value="owner" <%= assignment.role === "owner" ? "selected" : "" %>>Owner</option><% } %>
+                      </select>
+                      <button class="role-button">Save</button>
+                    </form>
+                  </div>
+                <% }) %>
+              <% } %>
+            </section>
+          <% } %>
+          <section class="mod-card">
+            <div class="mod-section-title"><h2>Staff and accounts</h2><small><%= staffUsers.length %> accounts</small></div>
+            <% staffUsers.forEach((target) => { %>
+              <div class="mod-user">
+                <div><div class="mod-user-name"><%= target.displayName %> · @<%= target.handle || "no-handle" %></div><div class="mod-user-meta">Discord <%= target.discordId %> · Role: <%= target.role %><%= target.muted ? " · Muted" : "" %><%= target.terminated ? " · Terminated" : "" %></div></div>
+                <% if (!target.terminated && String(target._id) !== String(user._id) && target.discordId !== defaultOwnerDiscordId) { %>
+                  <div class="mod-controls">
+                    <% if (["owner","manager"].includes(user.role) && (user.role === "owner" || ["user","moderator"].includes(target.role))) { %>
+                      <form class="role-form" method="POST" action="/moderation/roles">
+                        <input type="hidden" name="discordId" value="<%= target.discordId %>" />
+                        <select class="role-select" name="role" aria-label="Set role for Discord ID <%= target.discordId %>">
+                          <option value="user" <%= target.role === "user" ? "selected" : "" %>>User</option>
+                          <option value="moderator" <%= target.role === "moderator" ? "selected" : "" %>>Moderator</option>
+                          <% if (user.role === "owner") { %><option value="manager" <%= target.role === "manager" ? "selected" : "" %>>Manager</option><option value="owner" <%= target.role === "owner" ? "selected" : "" %>>Owner</option><% } %>
+                        </select>
+                        <button class="role-button">Save</button>
+                      </form>
+                    <% } %>
+                    <% if (target.role !== "owner" || user.role === "owner") { %>
+                      <% if (target.muted) { %>
+                        <form method="POST" action="/moderation/users/<%= target._id %>/unmute"><button class="mod-button">Unmute</button></form>
+                      <% } else { %>
+                        <form method="POST" action="/moderation/users/<%= target._id %>/mute"><button class="mod-button">Mute</button></form>
+                      <% } %>
+                    <% } %>
+                    <% if (["owner","manager"].includes(user.role) && (user.role === "owner" || ["user","moderator"].includes(target.role))) { %>
+                      <form method="POST" action="/moderation/users/<%= target._id %>/terminate" class="confirm-action" data-confirm-title="Terminate this account?" data-confirm-message="The account will be disabled and its posts hidden. Its profile, content, and ban record will be retained and can be restored from Banland."><input class="field termination-reason" name="reason" maxlength="500" placeholder="Reason (optional)" aria-label="Termination reason" /><button class="mod-button danger">Terminate</button></form>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+            <% }) %>
+          </section>
+        <% } %>
+
+        <% if (activeTab === "banland" && ["manager","owner"].includes(user.role)) { %>
+          <div class="feed-heading"><h1>Banland</h1><p>Terminated accounts are retained here. Reinstating an account restores access and makes its retained posts visible again.</p></div>
+          <nav class="profile-tabs" aria-label="Moderation tools"><a class="profile-tab" href="/app?tab=moderation">Moderation</a><a class="profile-tab active" href="/app?tab=banland">Banland</a></nav>
+          <section class="mod-card">
+            <div class="mod-section-title"><h2>Terminated accounts</h2><small><%= terminatedUsers.length %> listed</small></div>
+            <% if (!terminatedUsers.length) { %><div class="empty-small">No terminated accounts.</div><% } %>
+            <% terminatedUsers.forEach((target) => { const terminationActor = terminationActorMap && terminationActorMap[String(target.terminatedBy)]; %>
+              <div class="mod-user">
+                <div>
+                  <div class="mod-user-name"><%= target.displayName %> · @<%= target.handle || "no-handle" %></div>
+                  <div class="mod-user-meta">Discord <%= target.discordId %><%= target.role ? " · Role: " + target.role : "" %></div>
+                  <div class="terminated-meta">
+                    <strong>Reason:</strong> <%= target.terminationReason || "No reason recorded." %><br />
+                    <strong>Terminated:</strong> <%= target.terminatedAt ? new Date(target.terminatedAt).toLocaleString() : "Date unavailable" %><br />
+                    <strong>By:</strong> <%= terminationActor ? terminationActor.displayName || terminationActor.username : target.terminatedBy ? "Staff account " + target.terminatedBy : "Staff identity unavailable" %>
+                  </div>
+                </div>
+                <div class="banland-actions">
+                  <form method="POST" action="/moderation/users/<%= target._id %>/unban" class="confirm-action" data-confirm-title="Reinstate this account?" data-confirm-message="This restores sign-in access and unhides the account’s retained posts. The termination record remains available for audit.">
+                    <button class="unban-button">Reinstate account</button>
+                  </form>
+                </div>
+              </div>
+            <% }) %>
+          </section>
+        <% } %>
+
+        <% if (activeTab === "messages") { %>
+          <div class="feed-heading"><h1>Messages</h1><p>Send someone on Chirpy a note by handle.</p></div>
+          <div class="message-list">
+            <% messages.forEach((message) => { const mine = String(message.senderId) === String(user._id); const otherId = mine ? message.recipientId : message.senderId; const other = messageUserMap[String(otherId)]; %>
+              <div class="message-bubble <%= mine ? 'mine' : '' %>"><small><%= mine ? "You to" : "From" %> @<%= other ? other.handle || other.displayName : "deleted account" %></small><%= message.text %></div>
+            <% }) %>
+            <% if (!messages.length) { %><div class="empty"><strong>Your messages</strong>Messages you send or receive will show here.</div><% } %>
+          </div>
+          <form class="message-form" method="POST" action="/messages"><input name="handle" placeholder="Recipient handle" required /><textarea name="text" maxlength="1000" placeholder="Write a message…" required></textarea><button class="post-submit">Send message</button></form>
+        <% } %>
+
+        <% if (activeTab === "bookmarks") { %><div class="feed-heading"><h1>Bookmarks</h1><p>Posts you’ve saved for later.</p></div><% } %>
+        <% if (activeTab === "explore" && query) { %><div class="feed-heading"><h1>Search</h1><p>Results for “<%= query %>”</p></div><% } %>
+
+        <% if (["home","explore","bookmarks","profile"].includes(activeTab)) { %>
+          <% if (!posts.length) { %><div class="empty"><strong><%= activeTab === "profile" && profileView === "reposts" ? "No reposts yet" : activeTab === "profile" ? "No posts yet" : activeTab === "bookmarks" ? "Nothing saved yet" : "No posts found" %></strong><%= activeTab === "profile" && profileView === "reposts" ? "Posts you repost will show here." : activeTab === "bookmarks" ? "Bookmark a post to save it here." : "Try another search or be the first to post." %></div><% } %>
+
+          <% posts.forEach((post) => { const authorIdValue = post.authorId && post.authorId._id ? post.authorId._id : post.authorId; const authorId = String(authorIdValue && typeof authorIdValue.toHexString === "function" ? authorIdValue.toHexString() : authorIdValue || "").toLowerCase(); const author = post.author || userMap[authorId] || Object.values(userMap).find((entry) => String(entry._id && typeof entry._id.toHexString === "function" ? entry._id.toHexString() : entry._id || "").toLowerCase() === authorId); const authorName = author ? author.displayName || author.username : "Chirpy member"; const authorHandle = author ? author.handle || author.username : `member_${authorId.slice(-6)}`; const authorRole = author ? author.role : "user"; const verified = author && author.verificationStatus === "verified"; const liked = (post.likes || []).some((id) => String(id) === String(user._id)); const reposted = (post.reposts || []).some((id) => String(id) === String(user._id)); const bookmarked = (post.bookmarks || []).some((id) => String(id) === String(user._id)); const postImage = post.imageMime ? `/posts/${post._id}/image` : post.imageUrl; %>
+            <article class="post" id="<%= post._id %>">
+              <% const postReactions = post.reactions || []; const userReaction = postReactions.find((reaction) => String(reaction.userId) === String(user._id)); const postPollVotes = post.poll && post.poll.votes || []; const userPollVote = postPollVotes.find((vote) => String(vote.userId) === String(user._id)); const pollVoteCounts = post.poll ? post.poll.options.map((option, index) => postPollVotes.filter((vote) => vote.optionIndex === index).length) : []; const pollTotalVotes = pollVoteCounts.reduce((total, count) => total + count, 0); %>
+              <% if (activeTab === "profile" && profileView === "reposts") { %><div class="repost-note">↻ You reposted</div><% } %>
+              <header class="post-header">
+                <div class="avatar"><% if (author) { %><img src="<%= avatarUrl(author) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><% } %><span><%= authorName.slice(0,1).toUpperCase() %></span></div>
+                <div class="post-author"><div class="author-line">
+                  <span class="author-name"><%= authorName %>
+                    <% if (authorRole === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span>
+                    <% } else if (authorRole === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span>
+                    <% } else if (authorRole === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %>
+                    <% if (["owner","manager","moderator"].includes(authorRole) || verified) { %><span class="badge <%= verified ? "verified" : "staff-check" %>" role="img" aria-label="<%= verified ? "Verified" : "Staff" %>" title="<%= verified ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %>
+                  </span>
+                  <span class="author-handle">@<%= authorHandle %></span>
+                  <span class="timestamp">· <%= new Date(post.createdAt).toLocaleString() %></span>
+                </div></div>
+              </header>
+              <% if (post.text) { %><div class="post-body"><%= post.text %></div><% } %>
+              <% if (postImage) { %><a href="<%= postImage %>" target="_blank" rel="noopener noreferrer"><img class="post-image" src="<%= postImage %>" alt="Post attachment" loading="lazy" /></a><% } %>
+              <% if (post.poll) { %>
+                <section class="poll-card" data-poll-id="<%= post._id %>">
+                  <div class="poll-question"><strong><%= post.poll.question %></strong><span><%= pollTotalVotes %> <%= pollTotalVotes === 1 ? "vote" : "votes" %></span></div>
+                  <div class="poll-options">
+                    <% post.poll.options.forEach((option, index) => { const voteCount = pollVoteCounts[index]; const percentage = pollTotalVotes ? Math.round(voteCount / pollTotalVotes * 100) : 0; %>
+                      <button type="button" class="poll-option-button <%= userPollVote && userPollVote.optionIndex === index ? "selected" : "" %>" data-poll-option="<%= index %>" aria-pressed="<%= Boolean(userPollVote && userPollVote.optionIndex === index) %>">
+                        <progress class="poll-option-fill" max="100" value="<%= percentage %>" aria-label="<%= option.text %>: <%= percentage %> percent"><%= percentage %>%</progress>
+                        <span class="poll-option-label"><%= option.text %></span>
+                        <span class="poll-option-result"><%= percentage %>% · <%= voteCount %></span>
+                      </button>
+                    <% }) %>
+                  </div>
+                  <div class="poll-footnote"><%= userPollVote ? "Your vote is saved. You can change it." : "Choose an option to vote." %></div>
+                </section>
+              <% } %>
+              <div class="post-actions">
+                <button class="icon-btn comment-toggle" type="button" aria-label="Comment"><svg><use href="#i-comment"/></svg><span><%= post.comments.length || "" %></span></button>
+                <button class="icon-btn action-btn <%= reposted ? 'reposted' : '' %>" type="button" data-action="repost" data-id="<%= post._id %>" aria-label="Repost"><svg><use href="#i-repost"/></svg><span><%= post.reposts.length || "" %></span></button>
+                <button class="icon-btn action-btn <%= liked ? 'liked' : '' %>" type="button" data-action="like" data-id="<%= post._id %>" aria-label="Like"><svg><use href="#i-heart"/></svg><span><%= post.likes.length || "" %></span></button>
+                <button class="icon-btn action-btn <%= bookmarked ? 'bookmarked' : '' %>" type="button" data-action="bookmark" data-id="<%= post._id %>" aria-label="Bookmark"><svg><use href="#i-bookmark"/></svg></button>
+                <button class="icon-btn share-btn" type="button" data-id="<%= post._id %>" aria-label="Share"><svg><use href="#i-share"/></svg></button>
+              </div>
+              <div class="reaction-bar" aria-label="Emoji reactions">
+                <% ["❤️","😂","😮","😢","👍","🎉"].forEach((emoji) => { const reactionCount = postReactions.filter((reaction) => reaction.emoji === emoji).length; %>
+                  <button type="button" class="reaction-button <%= userReaction && userReaction.emoji === emoji ? "selected" : "" %>" data-emoji="<%= emoji %>" aria-label="React <%= emoji %>" aria-pressed="<%= Boolean(userReaction && userReaction.emoji === emoji) %>"><span><%= emoji %></span><small><%= reactionCount %></small></button>
+                <% }) %>
+              </div>
+              <div class="post-interaction-error" role="alert" hidden></div>
+              <div class="comment-list"><% (post.comments || []).forEach((comment) => { %><div class="comment"><strong>@<%= comment.handle %></strong><%= comment.text %></div><% }) %></div>
+              <form class="comment-form" data-id="<%= post._id %>" hidden><input name="text" maxlength="300" placeholder="Write a comment…" required /><button>Reply</button></form>
+
+              <% if (["moderator","manager","owner"].includes(user.role)) { %>
+                <div class="mod-actions">
+                  <form method="POST" action="/moderation/posts/<%= post._id %>/delete" class="confirm-action" data-confirm-title="Delete this post?" data-confirm-message="This post will be removed from the feed. This action cannot be undone."><button class="mod-button danger">Delete post</button></form>
+                  <% if (author && String(author._id) !== String(user._id) && author.discordId !== defaultOwnerDiscordId && (author.role !== "owner" || user.role === "owner")) { %>
+                    <% if (author.muted) { %><form method="POST" action="/moderation/users/<%= author._id %>/unmute"><button class="mod-button">Unmute user</button></form><% } else { %><form method="POST" action="/moderation/users/<%= author._id %>/mute"><button class="mod-button">Mute user</button></form><% } %>
+                    <% if (["owner","manager"].includes(user.role) && (user.role === "owner" || ["user","moderator"].includes(author.role))) { %><form method="POST" action="/moderation/users/<%= author._id %>/terminate" class="confirm-action" data-confirm-title="Terminate this account?" data-confirm-message="The account will be disabled and its posts hidden. Its profile, content, and ban record will be retained and can be restored from Banland."><input class="field termination-reason" name="reason" maxlength="500" placeholder="Reason (optional)" aria-label="Termination reason" /><button class="mod-button danger">Terminate account</button></form><% } %>
+                  <% } %>
+                </div>
+              <% } %>
+            </article>
+          <% }) %>
+        <% } %>
+      </main>
+
+    </div>
+
+    <dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+      <div class="confirm-content">
+        <p class="confirm-kicker">Chirpy moderation</p>
+        <h2 id="confirmTitle">Confirm action</h2>
+        <p id="confirmMessage"></p>
+        <div class="confirm-actions">
+          <button type="button" id="cancelConfirm">Cancel</button>
+          <button type="button" class="confirm-danger" id="acceptConfirm">Continue</button>
+        </div>
+      </div>
+    </dialog>
+    <% if (user.verificationRemovalNotice) { %>
+      <dialog class="verification-notice" id="verificationRemovalNotice" aria-labelledby="verificationNoticeTitle" aria-describedby="verificationNoticeMessage">
+        <div class="verification-notice-content">
+          <div class="verification-notice-icon" aria-hidden="true">✓</div>
+          <p class="confirm-kicker">Account update</p>
+          <h2 id="verificationNoticeTitle">Verification was removed</h2>
+          <p id="verificationNoticeMessage">Your account is no longer verified, and the orange verification badge has been removed. You can submit a new verification application from Settings.</p>
+          <button type="button" id="dismissVerificationNotice">Understood</button>
+        </div>
+      </dialog>
+      <script>
+        const verificationNotice = document.getElementById("verificationRemovalNotice");
+        verificationNotice.showModal();
+        document.getElementById("dismissVerificationNotice").addEventListener("click", () => {
+          verificationNotice.close();
+        });
+        window.requestAnimationFrame(() => {
+          if (!verificationNotice.open || document.visibilityState !== "visible") return;
+          fetch("/settings/verification/notice-seen", { method: "POST" })
+            .then((response) => {
+              if (!response.ok) throw new Error("Could not record verification notice display.");
+            })
+            .catch((error) => console.error(error));
+        });
+      </script>
+    <% } %>
+
+    <script>
+      const confirmDialog = document.getElementById("confirmDialog");
+      const confirmTitle = document.getElementById("confirmTitle");
+      const confirmMessage = document.getElementById("confirmMessage");
+      const cancelConfirm = document.getElementById("cancelConfirm");
+      const acceptConfirm = document.getElementById("acceptConfirm");
+      let pendingConfirmForm = null;
+      let confirmedForm = null;
+      let confirmedSubmitter = null;
+
+      document.querySelectorAll(".confirm-action").forEach((form) => {
+        form.addEventListener("submit", (event) => {
+          if (confirmedForm === form) {
+            confirmedForm = null;
+            return;
+          }
+          event.preventDefault();
+          pendingConfirmForm = form;
+          confirmedSubmitter = event.submitter || form.querySelector("button[type='submit'],button:not([type])");
+          confirmTitle.textContent = form.dataset.confirmTitle || "Confirm action";
+          confirmMessage.textContent = form.dataset.confirmMessage || "Are you sure you want to continue?";
+          confirmDialog.showModal();
+          cancelConfirm.focus();
+        });
+      });
+
+      cancelConfirm.addEventListener("click", () => confirmDialog.close());
+      acceptConfirm.addEventListener("click", () => {
+        if (!pendingConfirmForm) return;
+        confirmedForm = pendingConfirmForm;
+        const form = pendingConfirmForm;
+        const submitter = confirmedSubmitter;
+        pendingConfirmForm = null;
+        confirmedSubmitter = null;
+        confirmDialog.close();
+        if (submitter) form.requestSubmit(submitter);
+        else form.requestSubmit();
+      });
+      confirmDialog.addEventListener("close", () => {
+        pendingConfirmForm = null;
+        confirmedSubmitter = null;
+      });
+
+      const composer = document.getElementById("composer");
+      const openComposer = document.getElementById("openComposer");
+      if (openComposer && composer) {
+        openComposer.addEventListener("click", () => {
+          composer.hidden = false;
+          composer.querySelector("textarea").focus();
+          composer.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      }
+
+      const roleIdInput = document.querySelector("#roleAssignmentPreview")?.previousElementSibling;
+      const roleAssignmentPreview = document.getElementById("roleAssignmentPreview");
+      if (roleIdInput && roleAssignmentPreview) {
+        let roleLookupTimer = null;
+        let roleLookupRequest = 0;
+        let roleLookupController = null;
+        roleIdInput.addEventListener("input", () => {
+          window.clearTimeout(roleLookupTimer);
+          if (roleLookupController) roleLookupController.abort();
+          const requestId = ++roleLookupRequest;
+          const discordId = roleIdInput.value.trim();
+          roleAssignmentPreview.replaceChildren();
+          roleAssignmentPreview.hidden = false;
+
+          if (!/^\d{17,20}$/.test(discordId)) {
+            roleAssignmentPreview.textContent = discordId
+              ? "Enter a complete 17–20 digit Discord ID to check for an existing Chirpy profile."
+              : "";
+            roleAssignmentPreview.hidden = !discordId;
+            return;
+          }
+
+          roleAssignmentPreview.textContent = "Checking for an existing Chirpy profile…";
+          roleLookupTimer = window.setTimeout(async () => {
+            roleLookupController = new AbortController();
+            try {
+              const response = await fetch(
+                `/moderation/roles/lookup?discordId=${encodeURIComponent(discordId)}`,
+                { signal: roleLookupController.signal, cache: "no-store" }
+              );
+              const result = await response.json();
+              if (requestId !== roleLookupRequest) return;
+              if (!response.ok) {
+                throw new Error(result.message || "Profile lookup failed.");
+              }
+
+              roleAssignmentPreview.replaceChildren();
+              if (result.found) {
+                const avatar = document.createElement("div");
+                avatar.className = "avatar small";
+                const image = document.createElement("img");
+                image.src = result.account.avatarUrl;
+                image.alt = "";
+                image.onerror = () => {
+                  image.dataset.fallback = "";
+                  image.removeAttribute("src");
+                };
+                const initial = document.createElement("span");
+                initial.textContent = (result.account.displayName || "?").slice(0, 1).toUpperCase();
+                avatar.append(image, initial);
+                const copy = document.createElement("span");
+                copy.textContent = `${result.account.displayName} · @${result.account.username}${result.account.handle ? ` · @${result.account.handle}` : ""}${result.account.terminated ? " · account terminated; assignment unavailable" : ""}`;
+                roleAssignmentPreview.append(avatar, copy);
+              } else {
+                roleAssignmentPreview.textContent = result.message;
+              }
+            } catch (lookupError) {
+              if (lookupError.name !== "AbortError" && requestId === roleLookupRequest) {
+                roleAssignmentPreview.textContent = lookupError.message || "Could not check this Discord ID.";
+              }
+            }
+          }, 250);
+        });
+      }
+
+      document.querySelectorAll(".composer").forEach((form) => {
+        const pollTemplate = document.getElementById("pollComposerTemplate");
+        form.insertBefore(
+          pollTemplate.content.cloneNode(true),
+          form.querySelector(".upload-error")
+        );
+        const pollToggle = form.querySelector(".poll-toggle");
+        const pollEditor = form.querySelector(".poll-editor");
+        pollToggle.addEventListener("click", () => {
+          pollEditor.hidden = !pollEditor.hidden;
+          pollToggle.setAttribute("aria-pressed", String(!pollEditor.hidden));
+          pollToggle.textContent = pollEditor.hidden ? "＋ Add poll" : "− Remove poll";
+        });
+
+        const fileInput = form.querySelector(".image-upload-input");
+        const preview = form.querySelector(".image-preview");
+        const previewImage = preview.querySelector("img");
+        const uploadName = form.querySelector(".upload-name");
+        const uploadError = form.querySelector(".upload-error");
+        const submitButton = form.querySelector(".post-submit");
+        let selectedFile = null;
+        let previewUrl = null;
+        const allowedImageTypes = new Set([
+          "image/png",
+          "image/jpeg",
+          "image/gif",
+          "image/webp"
+        ]);
+        const showUploadError = (message) => {
+          uploadError.textContent = message;
+          uploadError.hidden = !message;
+        };
+        const clearSelectedImage = () => {
+          selectedFile = null;
+          fileInput.value = "";
+          preview.hidden = true;
+          previewImage.removeAttribute("src");
+          if (previewUrl) URL.revokeObjectURL(previewUrl);
+          previewUrl = null;
+          uploadName.textContent = "PNG, JPG, GIF or WebP · up to 5 MB";
+        };
+
+        fileInput.addEventListener("change", () => {
+          showUploadError("");
+          const file = fileInput.files[0];
+          if (!file) return;
+          if (!allowedImageTypes.has(file.type)) {
+            clearSelectedImage();
+            showUploadError("Choose a PNG, JPG, GIF, or WebP image.");
+            return;
+          }
+          if (file.size > 5 * 1024 * 1024) {
+            clearSelectedImage();
+            showUploadError("Images must be 5 MB or smaller.");
+            return;
+          }
+
+          selectedFile = file;
+          if (previewUrl) URL.revokeObjectURL(previewUrl);
+          previewUrl = URL.createObjectURL(file);
+          previewImage.src = previewUrl;
+          preview.hidden = false;
+          uploadName.textContent = file.name;
+        });
+
+        form.querySelector(".remove-image").addEventListener("click", () => {
+          clearSelectedImage();
+          showUploadError("");
+        });
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          showUploadError("");
+          submitButton.disabled = true;
+          submitButton.textContent = "Posting…";
+
+          try {
+            let imageData = "";
+            if (selectedFile) {
+              imageData = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result || ""));
+                reader.onerror = () => reject(new Error("Could not read the selected image."));
+                reader.readAsDataURL(selectedFile);
+              });
+            }
+
+            const payload = {
+              text: form.querySelector("textarea").value,
+              imageData
+            };
+            if (!pollEditor.hidden) {
+              payload.poll = {
+                question: pollEditor.querySelector(".poll-question").value,
+                options: [...pollEditor.querySelectorAll(".poll-option")].map(
+                  (input) => input.value
+                )
+              };
+            }
+
+            const response = await fetch(form.action, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              throw new Error(result.message || "Could not publish the post.");
+            }
+            window.location.assign(result.redirect || "/app");
+          } catch (error) {
+            showUploadError(error.message || "Could not publish the post.");
+          } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = "Post";
+          }
+        });
+      });
+
+      document.querySelectorAll(".composer textarea").forEach((textarea) => {
+        const counter = textarea.closest(".composer").querySelector(".char-count");
+        textarea.addEventListener("input", () => {
+          if (counter) counter.textContent = `${textarea.value.length}/500`;
+        });
+      });
+
+      document.querySelectorAll(".action-btn").forEach((button) => {
+        button.addEventListener("click", async () => {
+          button.disabled = true;
+          try {
+            const response = await fetch(`/posts/${button.dataset.id}/${button.dataset.action}`, { method: "POST" });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || "Action failed.");
+            const action = button.dataset.action;
+            button.classList.toggle(action === "like" ? "liked" : action === "repost" ? "reposted" : "bookmarked", result.active);
+            const counter = button.querySelector("span");
+            if (counter && action !== "bookmark") counter.textContent = result.count || "";
+          } catch (error) {
+            alert(error.message);
+          } finally {
+            button.disabled = false;
+          }
+        });
+      });
+
+      document.querySelectorAll(".reaction-button").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const post = button.closest(".post");
+          const error = post.querySelector(".post-interaction-error");
+          const buttons = [...post.querySelectorAll(".reaction-button")];
+          error.hidden = true;
+          buttons.forEach((item) => { item.disabled = true; });
+          try {
+            const response = await fetch(`/posts/${post.id}/reactions`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ emoji: button.dataset.emoji })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || "Could not save reaction.");
+            buttons.forEach((item) => {
+              const emoji = item.dataset.emoji;
+              item.classList.toggle("selected", result.activeEmoji === emoji);
+              item.setAttribute("aria-pressed", String(result.activeEmoji === emoji));
+              item.querySelector("small").textContent = result.counts[emoji] || 0;
+            });
+          } catch (requestError) {
+            error.textContent = requestError.message || "Could not save reaction.";
+            error.hidden = false;
+          } finally {
+            buttons.forEach((item) => { item.disabled = false; });
+          }
+        });
+      });
+
+      document.querySelectorAll(".poll-card").forEach((poll) => {
+        poll.querySelectorAll(".poll-option-button").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const post = poll.closest(".post");
+            const error = post.querySelector(".post-interaction-error");
+            const buttons = [...poll.querySelectorAll(".poll-option-button")];
+            error.hidden = true;
+            buttons.forEach((item) => { item.disabled = true; });
+            try {
+              const response = await fetch(`/posts/${poll.dataset.pollId}/poll`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ optionIndex: Number(button.dataset.pollOption) })
+              });
+              const responseText = await response.text();
+              let result;
+              try {
+                result = JSON.parse(responseText);
+              } catch {
+                throw new Error(
+                  response.ok
+                    ? "The server returned an invalid response. Check whether your vote was saved before trying again."
+                    : `Your vote was not saved (server returned HTTP ${response.status}). Please try again.`
+                );
+              }
+              if (!response.ok) throw new Error(result.message || "Could not save your vote.");
+              if (
+                result.success !== true ||
+                !Array.isArray(result.counts) ||
+                !Number.isInteger(result.optionIndex)
+              ) {
+                throw new Error("The server returned incomplete poll results. Refresh to check your vote.");
+              }
+              const total = result.counts.reduce((sum, count) => sum + count, 0);
+              buttons.forEach((item, index) => {
+                const count = result.counts[index] || 0;
+                const percent = total ? Math.round(count / total * 100) : 0;
+                const selected = index === result.optionIndex;
+                item.classList.toggle("selected", selected);
+                item.setAttribute("aria-pressed", String(selected));
+                item.querySelector(".poll-option-fill").value = percent;
+                item.querySelector(".poll-option-result").textContent = `${percent}% · ${count}`;
+              });
+              const totalLabel = poll.querySelector(".poll-question > span");
+              totalLabel.textContent = `${total} ${total === 1 ? "vote" : "votes"}`;
+              poll.querySelector(".poll-footnote").textContent = "Your vote is saved. You can change it.";
+            } catch (requestError) {
+              error.textContent = requestError.message || "Could not save your vote.";
+              error.hidden = false;
+            } finally {
+              buttons.forEach((item) => { item.disabled = false; });
+            }
+          });
+        });
+      });
+
+      document.querySelectorAll(".comment-toggle").forEach((button) => {
+        button.addEventListener("click", () => {
+          const form = button.closest(".post").querySelector(".comment-form");
+          form.hidden = !form.hidden;
+          if (!form.hidden) form.querySelector("input").focus();
+        });
+      });
+
+      document.querySelectorAll(".comment-form").forEach((form) => {
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const input = form.querySelector("input");
+          const submit = form.querySelector("button");
+          submit.disabled = true;
+          try {
+            const response = await fetch(`/posts/${form.dataset.id}/comments`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: input.value })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || "Comment failed.");
+            const line = document.createElement("div");
+            line.className = "comment";
+            const author = document.createElement("strong");
+            author.textContent = `@${result.comment.handle}`;
+            line.append(author, document.createTextNode(result.comment.text));
+            form.parentElement.querySelector(".comment-list").append(line);
+            input.value = "";
+            const counter = form.closest(".post").querySelector(".comment-toggle span");
+            if (counter) counter.textContent = result.count;
+          } catch (error) {
+            alert(error.message);
+          } finally {
+            submit.disabled = false;
+          }
+        });
+      });
+
+      document.querySelectorAll(".share-btn").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const url = `${location.origin}/app#${button.dataset.id}`;
+          try {
+            if (navigator.share) await navigator.share({ title: "Chirpy post", url });
+            else {
+              await navigator.clipboard.writeText(url);
+              button.title = "Link copied";
+            }
+          } catch (error) {
+            if (error.name !== "AbortError") alert("Couldn't share this post.");
+          }
+        });
+      });
+    </script>
+  <% } %>
+</body>
+</html>
