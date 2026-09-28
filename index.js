@@ -42,7 +42,17 @@ const CONFIGURED_DISCORD_REDIRECT_URI = String(
 ).trim();
 
 function getDiscordRedirectUri(req) {
-  if (CONFIGURED_DISCORD_REDIRECT_URI) return CONFIGURED_DISCORD_REDIRECT_URI;
+  if (CONFIGURED_DISCORD_REDIRECT_URI) {
+    try {
+      const configuredUri = new URL(CONFIGURED_DISCORD_REDIRECT_URI);
+      if (configuredUri.hostname !== "localhost" && configuredUri.hostname !== "127.0.0.1") {
+        configuredUri.protocol = "https:";
+      }
+      return configuredUri.toString();
+    } catch {
+      return CONFIGURED_DISCORD_REDIRECT_URI;
+    }
+  }
 
   const forwardedProto = String(req.headers["x-forwarded-proto"] || "")
     .split(",")[0]
