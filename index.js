@@ -567,30 +567,6 @@ app.get(
 app.get("/terms", (req, res) => renderPage(res, "terms"));
 app.get("/privacy", (req, res) => renderPage(res, "privacy"));
 
-app.get("/admin/discord", (req, res) => {
-  const session = getSession(req);
-  if (!session?.adminVerified) return res.redirect("/");
-
-  const configuredRedirect = CONFIGURED_DISCORD_REDIRECT_URI || "";
-  let redirectStatus = "Missing";
-  try {
-    const parsed = new URL(configuredRedirect);
-    redirectStatus = parsed.protocol === "https:" || parsed.hostname === "localhost" ? "Looks valid" : "Use HTTPS in production";
-  } catch {
-    if (configuredRedirect) redirectStatus = "Invalid URL";
-  }
-
-  return renderPage(res, "discord-config", {
-    config: {
-      clientId: Boolean(DISCORD_CLIENT_ID),
-      clientSecret: Boolean(DISCORD_CLIENT_SECRET),
-      redirectUri: configuredRedirect,
-      redirectStatus,
-      callbackPath: "/auth/discord/callback",
-    },
-  });
-});
-
 app.post("/admin/verify", (req, res) => {
   if (!safeCompare(req.body.password, ADMIN_PASSWORD)) {
     return res.status(401).json({
