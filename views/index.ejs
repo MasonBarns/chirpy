@@ -506,6 +506,22 @@
       <% } %>
     </main>
 
+  <% } else if (page === "discord-config") { %>
+    <main class="legal-page" style="min-height:100vh;display:grid;place-items:center;padding:32px 20px;background:#08090d;color:#f5f5f5">
+      <section style="width:min(680px,100%);border:1px solid #2c3040;border-radius:20px;padding:32px;background:#11131b;box-shadow:0 24px 70px rgba(0,0,0,.35)">
+        <p class="eyebrow">Chirpy · Admin diagnostics</p>
+        <h1 style="margin:8px 0 10px">Discord configuration</h1>
+        <p style="color:#aeb4c4;line-height:1.6">This panel checks the secrets currently loaded by the server. It does not display secret values or save them to the database. To change them permanently, update the deployment environment variables and redeploy.</p>
+        <div style="display:grid;gap:12px;margin:26px 0">
+          <div style="display:flex;justify-content:space-between;gap:20px;padding:16px;border-radius:12px;background:#1a1d28"><span>DISCORD_CLIENT_ID</span><strong style="color:<%= config.clientId ? '#78e08f' : '#ff8d8d' %>"><%= config.clientId ? 'Loaded' : 'Missing' %></strong></div>
+          <div style="display:flex;justify-content:space-between;gap:20px;padding:16px;border-radius:12px;background:#1a1d28"><span>DISCORD_CLIENT_SECRET</span><strong style="color:<%= config.clientSecret ? '#78e08f' : '#ff8d8d' %>"><%= config.clientSecret ? 'Loaded' : 'Missing' %></strong></div>
+          <div style="padding:16px;border-radius:12px;background:#1a1d28"><div style="display:flex;justify-content:space-between;gap:20px"><span>DISCORD_REDIRECT_URI</span><strong style="color:<%= config.redirectStatus === 'Looks valid' ? '#78e08f' : '#ffcc66' %>"><%= config.redirectStatus %></strong></div><code style="display:block;margin-top:10px;color:#c4cada;overflow-wrap:anywhere"><%= config.redirectUri || 'Not set; the server derives a callback URL from the request host.' %></code></div>
+        </div>
+        <div style="padding:16px;border-radius:12px;background:#171a24;color:#c4cada;line-height:1.6"><strong style="color:#fff">Discord Developer Portal callback</strong><br /><code><%= config.redirectUri || ('https://your-domain.example' + config.callbackPath) %></code><br /><small>It must match the URL sent by the app exactly. Production URLs should use https://.</small></div>
+        <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap"><a href="/" class="landing-cta" style="display:inline-flex">Back to site</a><a href="/admin/discord" style="display:inline-flex;align-items:center;padding:12px 16px;border:1px solid #343949;border-radius:10px;color:#d9deea;text-decoration:none">Refresh check</a></div>
+      </section>
+    </main>
+
   <% } else if (page === "maintenance") { %>
     <main class="maintenance-page">
       <div class="ambient-glow one" aria-hidden="true"></div>
