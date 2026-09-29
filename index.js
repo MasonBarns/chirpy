@@ -37,9 +37,34 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const DISCORD_REDIRECT_URI =
-  process.env.DISCORD_REDIRECT_URI ||
-  `http://localhost:${PORT}/auth/discord/callback`;
+const CONFIGURED_DISCORD_REDIRECT_URI = String(
+  process.env.DISCORD_REDIRECT_URI || ""
+).trim();
+
+function getDiscordRedirectUri(req) {
+  if (CONFIGURED_DISCORD_REDIRECT_URI) {
+    try {
+      const configuredUri = new URL(CONFIGURED_DISCORD_REDIRECT_URI);
+      if (configuredUri.hostname !== "localhost" && configuredUri.hostname !== "127.0.0.1") {
+        configuredUri.protocol = "https:";
+      }
+      return configuredUri.toString();
+    } catch {
+      return CONFIGURED_DISCORD_REDIRECT_URI;
+    }
+  }
+
+  const forwardedProto = String(req.headers["x-forwarded-proto"] || "")
+    .split(",")[0]
+    .trim();
+  const protocol = forwardedProto || req.protocol || "http";
+  const host = String(req.headers["x-forwarded-host"] || req.get("host") || "")
+    .split(",")[0]
+    .trim();
+
+  if (!host) return `http://localhost:${PORT}/auth/discord/callback`;
+  return `${protocol}://${host}/auth/discord/callback`;
+}
 
 const OWNER_DISCORD_ID = "1147930457439223920";
 const HANDLE_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000;
@@ -594,9 +619,10 @@ app.get(
     const state = crypto.randomBytes(24).toString("hex");
     session.discordState = state;
 
+    const redirectUri = getDiscordRedirectUri(req);
     const url = new URL("https://discord.com/oauth2/authorize");
     url.searchParams.set("client_id", DISCORD_CLIENT_ID);
-    url.searchParams.set("redirect_uri", DISCORD_REDIRECT_URI);
+    url.searchParams.set("redirect_uri", redirectUri);
     url.searchParams.set("response_type", "code");
     url.searchParams.set("scope", "identify");
     url.searchParams.set("state", state);
@@ -618,6 +644,7 @@ app.get(
 
     session.discordState = null;
 
+    const redirectUri = getDiscordRedirectUri(req);
     const tokenResponse = await fetch("https://discord.com/api/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -626,7 +653,7 @@ app.get(
         client_secret: DISCORD_CLIENT_SECRET,
         grant_type: "authorization_code",
         code: String(code),
-        redirect_uri: DISCORD_REDIRECT_URI,
+        redirect_uri: redirectUri,
       }),
     });
 
