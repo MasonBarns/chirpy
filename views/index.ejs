@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#08090d" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
-  <link rel="apple-touch-icon" href="/favicon.png" />
-  <title><%= page === "app" ? "Chirpy" : page === "moderation" ? "Moderation · Chirpy" : page === "login" ? "Sign in · Chirpy" : page === "onboarding" ? "Profile setup · Chirpy" : page === "terms" ? "Terms of Service · Chirpy" : page === "privacy" ? "Privacy Policy · Chirpy" : page === "landing" ? "Chirpy — Find your people" : "Chirpy — Under Maintenance" %></title>
+  <title><%= page === "app" ? "Chirpy" : page === "public-profile" ? `${profileAccount.displayName} · Chirpy` : page === "error" ? `${statusCode || "Error"} · Chirpy` : page === "moderation" ? "Moderation · Chirpy" : page === "login" ? "Sign in · Chirpy" : page === "onboarding" ? "Profile setup · Chirpy" : page === "terminated" ? "Account status · Chirpy" : page === "terms" ? "Terms of Service · Chirpy" : page === "privacy" ? "Privacy Policy · Chirpy" : page === "landing" ? "Chirpy — Find your people" : "Chirpy — Under Maintenance" %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -32,12 +30,23 @@
     a { color: inherit; text-decoration: none; }
     button,input,textarea,select { font: inherit; }
     button { color: inherit; cursor: pointer; }
+    button:not(:disabled):hover { filter: brightness(1.07); }
+    button:not(:disabled):active { transform: translateY(1px); }
+    button,a,.nav-link,.tab,.profile-tab,.post-menu summary,.image-upload-button,.icon-btn {
+      transition: color .16s ease,background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease,opacity .16s ease,filter .16s ease;
+    }
+    button:active,.create-btn:active,.post-submit:active,.auth-btn:active { transform: translateY(1px) scale(.99); }
+    button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible {
+      outline: 2px solid rgba(255,128,87,.85); outline-offset: 2px;
+    }
     .eyebrow,.timestamp,.mono { font-family: "DM Mono",monospace; }
     .muted { color: var(--muted); }
 
     .badge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-left: 4px; vertical-align: -4px; filter: drop-shadow(0 0 3px currentColor); }
     .badge svg { display: block; width: 100%; height: 100%; overflow: visible; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
     .badge.verified,.badge.staff-check { color: #ff8738; }
+    .badge.partner { color: #ff304f; filter: drop-shadow(0 0 2px rgba(255,48,79,.95)) drop-shadow(0 0 7px rgba(255,32,62,.75)); }
+    .badge.partner svg { filter: drop-shadow(0 0 2px rgba(255,35,65,.85)); }
     .badge.manager { color: #f4aa40; }
     .badge.moderator { color: #8b9cff; }
     .badge.owner { color: #ffcf55; }
@@ -105,6 +114,7 @@
     .maintenance-password { width: 100%; height: 44px; margin-top: 12px; padding: 0 13px; border: 1px solid #44303a; border-radius: 9px; outline: none; background: #080c19; color: white; }
     .maintenance-error { margin: 8px 0 0; color: #ff8796; font-size: 11px; }
     .maintenance-thanks { margin: 15px 0 0; color: #83859a; font-size: 11px; line-height: 1.6; }
+    .maintenance-side > a.maintenance-thanks { display: block; color: #ff9b7a; text-align: center; text-decoration: underline; text-underline-offset: 3px; }
 
     /* Public landing */
     .landing-page { min-height: 100vh; position: relative; overflow: hidden; isolation: isolate; background: radial-gradient(ellipse at 50% 45%,rgba(255,77,20,.12),transparent 38%),#08090d; }
@@ -173,6 +183,27 @@
     .input-hint { margin: 8px 0 0 !important; color: #777b89 !important; font-size: 11px; }
     .form-footnote { display: flex; gap: 9px; margin-top: 17px; padding: 12px; border: 1px solid #302b30; border-radius: 9px; color: #9295a1; font-size: 11px; line-height: 1.55; }
     .form-footnote svg { width: 16px; height: 16px; flex: 0 0 16px; color: var(--accent-light); }
+    .termination-page { min-height: 100vh; display: grid; place-items: center; position: relative; overflow: hidden; padding: 90px 20px 36px; isolation: isolate; background: radial-gradient(ellipse at 8% 8%,rgba(255,77,20,.2),transparent 36%),radial-gradient(ellipse at 93% 90%,rgba(119,40,27,.17),transparent 36%),#070811; }
+    .termination-page::before { content: ""; position: absolute; z-index: -1; inset: 0; opacity: .2; pointer-events: none; background-image: radial-gradient(circle,rgba(255,111,65,.75) 1px,transparent 1.7px); background-size: 15px 15px; mask-image: radial-gradient(ellipse 55% 48% at 50% 50%,#000 5%,transparent 100%); }
+    .termination-wordmark { position: absolute; top: 26px; left: max(24px,calc((100vw - 1060px)/2)); display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 800; letter-spacing: .13em; }
+    .termination-wordmark img { width: 29px; height: 29px; object-fit: contain; }
+    .termination-card { width: min(560px,100%); padding: clamp(25px,6vw,44px); border: 1px solid #3a2c31; border-radius: 21px; background: rgba(12,14,24,.96); box-shadow: 0 32px 100px rgba(0,0,0,.55),0 0 70px rgba(255,77,20,.08); }
+    .termination-icon { display: grid; width: 54px; height: 54px; place-items: center; margin-bottom: 22px; border: 1px solid rgba(255,103,67,.38); border-radius: 17px; background: rgba(255,77,20,.12); color: #ff825f; font-size: 24px; }
+    .termination-card h1 { margin: 10px 0; font-size: clamp(29px,6vw,40px); letter-spacing: -.06em; }
+    .termination-card > p { color: #a5a9b7; line-height: 1.75; }
+    .termination-detail { margin: 20px 0; padding: 14px 15px; border: 1px solid #302d35; border-radius: 10px; background: #0b0c12; color: #c9c5ca; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+    .termination-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .termination-actions a,.termination-actions button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; padding: 0 15px; border: 1px solid #39353d; border-radius: 9px; background: #16171e; color: #dddde3; font-size: 12px; font-weight: 650; }
+    .termination-actions a.primary { border-color: transparent; background: linear-gradient(100deg,#ff4d14,#ff7040); color: white; }
+    .termination-actions form { margin: 0; }
+    .appeal-card { margin: 20px 0; padding: 16px; border: 1px solid #3b3034; border-radius: 12px; background: linear-gradient(140deg,rgba(255,77,20,.07),#0b0c12 68%); }
+    .appeal-card h2 { margin: 0; font-size: 15px; }
+    .appeal-card p,.appeal-status { color: #aeb0bb; font-size: 12px; line-height: 1.65; }
+    .appeal-card form { display: grid; gap: 10px; margin-top: 13px; }
+    .appeal-card textarea { width: 100%; min-height: 120px; padding: 11px 12px; border: 1px solid #39333b; border-radius: 9px; background: #08090e; color: var(--text); resize: vertical; }
+    .appeal-card button { min-height: 42px; padding: 0 14px; border: 0; border-radius: 8px; background: linear-gradient(100deg,#ff4d14,#ff7040); color: #fff; font-weight: 700; }
+    .appeal-notice { margin: 14px 0; padding: 11px 13px; border: 1px solid rgba(255,128,87,.32); border-radius: 9px; background: rgba(255,77,20,.08); color: #ffc0a7; font-size: 12px; line-height: 1.6; }
+    .appeal-window { color: #ffc092 !important; }
 
     /* App shell and feed */
     .app-shell { display: grid; width: min(1120px,100%); min-height: 100vh; grid-template-columns: 230px minmax(390px,760px); gap: 28px; margin: 0 auto; padding: 0 28px; }
@@ -237,13 +268,16 @@
     .char-count { color: #858895; font: 11px "DM Mono",monospace; }
     .post-submit { padding: 9px 16px; }
     .post-submit:disabled { opacity: .45; cursor: not-allowed; }
-    .post { padding: 19px 0 17px; border-bottom: 1px solid #22242c; }
+    .post { padding: 19px 0 17px; border-bottom: 1px solid #22242c; animation: card-in .32s cubic-bezier(.2,.7,.25,1) both; }
     .post-header { display: flex; align-items: center; gap: 10px; }
     .post-author { min-width: 0; flex: 1; }
     .author-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .author-name { font-weight: 700; }
     .author-handle,.timestamp { color: #858894; font-size: 12px; }
     .post-body { margin: 10px 0 12px 44px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
+    .post-body a,.notification-card a { color: #ff956e; text-decoration: underline; text-decoration-color: rgba(255,149,110,.45); text-underline-offset: 2px; }
+    .post-body a:hover,.notification-card a:hover { color: #ffb194; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     .post-image { display: block; max-width: calc(100% - 44px); max-height: 440px; margin: 10px 0 12px 44px; border: 1px solid #2b2d36; border-radius: 10px; object-fit: cover; }
     .poll-card { margin: 13px 0 12px 44px; padding: 14px; border: 1px solid #2b2d36; border-radius: 11px; background: #101116; }
     .poll-question { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 11px; }
@@ -261,12 +295,31 @@
     .poll-option-result { flex: 0 0 auto; color: #b9bbc5; font-size: 10px; }
     .poll-footnote { margin-top: 9px; color: #858894; font-size: 10px; }
     .post-actions { display: flex; justify-content: space-between; max-width: 470px; margin-left: 38px; }
-    .reaction-bar { display: flex; flex-wrap: wrap; gap: 5px; margin: 4px 0 0 44px; }
-    .reaction-button { display: inline-flex; min-width: 47px; min-height: 29px; align-items: center; justify-content: center; gap: 5px; padding: 3px 7px; border: 1px solid transparent; border-radius: 15px; background: #121319; color: #b7b9c3; }
-    .reaction-button:hover { border-color: #373943; }
-    .reaction-button.selected { border-color: rgba(255,77,20,.55); background: rgba(255,77,20,.12); }
-    .reaction-button span { font-size: 14px; }
-    .reaction-button small { font-size: 10px; }
+    .post { position: relative; }
+    .post-menu { position: relative; z-index: 2; flex: 0 0 auto; margin-left: auto; }
+    .post-menu-trigger { display: grid; width: 36px; height: 36px; place-items: center; padding: 0; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #9699a5; }
+    .post-menu-trigger:hover,.post-menu-trigger[aria-expanded="true"] { border-color: #353741; background: #17181f; color: white; }
+    .post-menu-trigger svg { width: 19px; height: 19px; fill: currentColor; }
+    .post-menu-panel { position: fixed; z-index: 1000; display: grid; width: min(330px,calc(100vw - 24px)); max-height: min(76vh,560px); gap: 8px; padding: 12px; overflow: auto; overscroll-behavior: contain; border: 1px solid #3b3d48; border-radius: 13px; background: #111218; box-shadow: 0 20px 60px rgba(0,0,0,.68); opacity: 0; transform: translateY(-5px) scale(.985); transform-origin: top right; transition: opacity .15s ease,transform .15s ease; }
+    .post-menu-panel.is-open { opacity: 1; transform: translateY(0) scale(1); }
+    .post-menu-section { display: grid; min-width: 0; gap: 7px; padding: 2px 0 9px; border-bottom: 1px solid #292b34; }
+    .post-menu-section:last-child { padding-bottom: 0; border-bottom: 0; }
+    .post-menu-section h3 { margin: 0; color: #999ca7; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .post-menu-panel button { width: 100%; min-width: 0; min-height: 38px; padding: 8px 10px; border: 1px solid #353741; border-radius: 8px; background: #191a22; color: #e0e1e7; text-align: left; font-size: 12px; white-space: normal; overflow-wrap: anywhere; }
+    .post-menu-panel button:hover { border-color: #4b4d59; background: #202129; }
+    .post-menu-panel button.danger { border-color: rgba(255,83,100,.22); background: rgba(255,83,100,.07); color: #ff9aa5; }
+    .post-menu-panel form { display: grid; min-width: 0; gap: 7px; margin: 0; }
+    .post-menu-panel select,.post-menu-panel input { display: block; width: 100%; min-width: 0; min-height: 38px; margin: 0; padding: 8px 10px; border: 1px solid #353741; border-radius: 8px; background: #0a0b10; color: var(--text); font-size: 12px; }
+    .post-menu-panel .menu-field-label { color: #a2a4ae; font-size: 11px; }
+    .post-image-button { display: block; max-width: calc(100% - 44px); margin: 10px 0 12px 44px; padding: 0; border: 0; border-radius: 10px; background: transparent; text-align: left; }
+    .post-image { display: block; max-width: 100%; max-height: 440px; border: 1px solid #2b2d36; border-radius: 10px; object-fit: contain; }
+    .image-load-fallback { display: block; padding: 18px; border: 1px solid #363842; border-radius: 10px; color: #a8aab4; font-size: 12px; }
+    .post-image-button:hover .post-image { border-color: #6b4134; }
+    .media-lightbox { width: min(1000px,calc(100% - 28px)); max-width: none; max-height: calc(100% - 28px); padding: 12px; overflow: auto; border: 1px solid #42444e; border-radius: 14px; background: #0b0c11; color: white; }
+    .media-lightbox::backdrop { background: rgba(2,3,7,.86); backdrop-filter: blur(7px); }
+    .media-lightbox-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: #b8bac4; font-size: 12px; }
+    .media-lightbox-head button { min-width: 36px; min-height: 36px; border: 1px solid #383a45; border-radius: 8px; background: #17181f; }
+    .media-lightbox img { display: block; max-width: 100%; max-height: calc(100vh - 100px); margin: auto; object-fit: contain; }
     .post-interaction-error { margin: 8px 0 0 44px; color: #ff8796; font-size: 11px; }
     .icon-btn { display: inline-flex; align-items: center; gap: 7px; padding: 6px 7px; border: 0; border-radius: 7px; background: transparent; color: #858894; font-size: 12px; }
     .icon-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -284,6 +337,14 @@
     .mod-actions form { display: inline; }
     .mod-button,.role-button { padding: 7px 10px; border: 1px solid #343540; border-radius: 7px; background: #15161d; color: #c5c6ce; font-size: 11px; }
     .mod-button.danger { border-color: rgba(255,83,100,.3); color: #ff8796; }
+    .mute-form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .mute-form select,.mute-form input { max-width: 150px; min-height: 31px; padding: 5px 8px; border: 1px solid #343540; border-radius: 7px; background: #101116; color: var(--text); font-size: 11px; }
+    .active-mute-meta { margin-top: 5px; color: #aeb0bb; font-size: 11px; line-height: 1.6; }
+    .mute-banner { margin: 14px 0; padding: 14px 16px; border: 1px solid rgba(255,151,67,.34); border-radius: 11px; background: linear-gradient(120deg,rgba(255,121,38,.12),rgba(25,19,18,.84)); color: #f4d4c2; line-height: 1.6; }
+    .mute-banner strong { color: #ffad79; }
+    .mute-banner small { display: block; margin-top: 3px; color: #b9a99f; }
+    .app-toast { position: fixed; z-index: 30; right: 24px; bottom: 24px; max-width: min(420px,calc(100vw - 32px)); padding: 13px 16px; border: 1px solid #4b3431; border-radius: 11px; background: #171318; color: #f0d9d4; box-shadow: 0 16px 50px rgba(0,0,0,.48); opacity: 0; pointer-events: none; transform: translateY(10px); transition: opacity .18s ease,transform .18s ease; }
+    .app-toast.visible { opacity: 1; transform: translateY(0); }
     .repost-note { margin: 0 0 9px 44px; color: #7fbf9f; font-size: 11px; }
     .profile-header { padding: 25px 0 0; }
     .profile-info { display: flex; align-items: center; gap: 17px; }
@@ -292,7 +353,7 @@
     .profile-count { margin: 12px 0 18px; color: #858894; font-size: 12px; }
     .profile-tab { border-bottom: 2px solid transparent; font-size: 13px; font-weight: 600; }
     .right-rail { padding: 34px 0 20px; }
-    .rail-card,.mod-card,.settings-card { margin-bottom: 15px; padding: 17px; border: 1px solid #252730; border-radius: 12px; background: #101116; }
+    .rail-card,.mod-card,.settings-card { margin-bottom: 15px; padding: 17px; border: 1px solid #252730; border-radius: 12px; background: #101116; animation: card-in .28s ease-out both; }
     .rail-card h2,.mod-card h2,.settings-card h2 { margin: 0 0 14px; font-size: 15px; }
     .trend { display: block; padding: 9px 0; color: var(--accent-light); }
     .trend small { display: block; margin-top: 4px; color: #777b87; }
@@ -333,9 +394,22 @@
     .mod-section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
     .mod-section-title small { color: var(--muted); font-size: 11px; }
     .mod-user { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid #252730; }
+    .mod-user.staff-account { grid-template-columns: minmax(0,1fr); align-items: stretch; gap: 14px; margin-top: 12px; padding: 15px; border: 1px solid #2d303a; border-radius: 11px; background: linear-gradient(135deg,#12141b,#0d0e14); }
+    .staff-account-info,.staff-account-actions,.staff-action-group { min-width: 0; }
+    .staff-account-info { overflow-wrap: anywhere; }
+    .staff-account-actions { display: grid; gap: 10px; }
+    .staff-action-group { display: grid; grid-template-columns: minmax(85px, .28fr) minmax(0,1fr); align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid #272a33; }
+    .staff-action-label { color: #989ba7; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .staff-action-group form { min-width: 0; margin: 0; }
+    .staff-action-group select,.staff-action-group input { width: 100%; min-width: 0; max-width: 100%; min-height: 36px; margin: 0; padding: 7px 9px; border: 1px solid #343641; border-radius: 7px; background: #0a0b10; color: var(--text); font-size: 11px; }
+    .staff-action-group button { min-height: 36px; white-space: nowrap; }
+    .staff-role-form { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+    .staff-mute-form { display: grid; grid-template-columns: minmax(110px,.7fr) minmax(0,1.3fr) auto; gap: 8px; }
+    .staff-terminate-form { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+    .staff-action-group .termination-reason { width: 100% !important; }
     .mod-user-name { font-weight: 650; }
     .mod-user-meta { margin-top: 4px; color: #8b8e9a; font-size: 11px; }
-    .mod-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .mod-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; min-width: 0; }
     .role-form { display: flex; gap: 6px; align-items: center; }
     .role-form .field { width: auto; max-width: 220px; margin: 0; }
     .role-select { width: auto; min-width: 105px; margin: 0; padding: 7px; font-size: 11px; }
@@ -344,6 +418,13 @@
     .role-assignee-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .role-assignee-copy span { color: var(--muted); font-size: 11px; }
     .role-assignment-preview { display: flex; min-height: 40px; flex: 1 0 100%; align-items: center; gap: 9px; color: #c5c7d0; font-size: 11px; }
+    .partner-badge-tools { display: grid; gap: 10px; }
+    .partner-badge-tools > label { display: grid; gap: 7px; color: #c5c7d0; font-size: 12px; }
+    .partner-badge-tools > label input { width: 100%; height: 40px; padding: 0 11px; border: 1px solid #30323c; border-radius: 8px; background: #0b0c12; color: var(--text); }
+    .partner-lookup-result { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 11px; border: 1px solid #2c2e39; border-radius: 9px; background: #0c0d13; color: #c5c7d0; font-size: 12px; }
+    .partner-lookup-result .partner-status { flex: 1 1 180px; }
+    .partner-lookup-result form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .partner-lookup-result select { min-height: 36px; padding: 6px 9px; border: 1px solid #343641; border-radius: 7px; background: #0a0b10; color: var(--text); }
     .application-reason { margin: 10px 0; padding: 11px; border-radius: 8px; background: #0b0c12; color: #c5c7d0; font-size: 12px; line-height: 1.6; }
     .application-actions { display: flex; gap: 8px; }
     .application-actions form { flex: 1; }
@@ -353,8 +434,29 @@
     .message-bubble { max-width: 82%; padding: 11px 13px; border: 1px solid #292c36; border-radius: 12px; background: #13151c; line-height: 1.55; }
     .message-bubble.mine { justify-self: end; border-color: #633421; background: #291811; }
     .message-form { display: grid; gap: 9px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #242630; }
+    .notification-list { display: grid; gap: 9px; }
+    .notification-card { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid #292c36; border-radius: 11px; background: #111218; color: #c5c7d0; line-height: 1.5; animation: card-in .28s ease-out both; }
+    .notification-card.unread { border-color: rgba(255,77,20,.42); background: linear-gradient(110deg,rgba(255,77,20,.08),#111218 65%); }
+    .notification-card .avatar { flex: 0 0 38px; }
+    .public-profile-page { width: min(720px,calc(100% - 32px)); min-height: 100vh; margin: 0 auto; border-right: 1px solid #242630; border-left: 1px solid #242630; padding: 18px 24px 60px; }
+    .public-profile-head { display: flex; align-items: center; gap: 14px; padding: 24px 0; border-bottom: 1px solid #252730; }
+    .public-profile-head h1 { margin: 0 0 5px; font-size: 23px; }
+    .public-profile-bio { margin: 0; padding: 14px 0; color: #aeb0bb; line-height: 1.6; }
+    .public-profile-home { display: inline-flex; align-items: center; gap: 8px; color: #ff956e; font-size: 12px; }
+    .profile-stats { display: flex; flex-wrap: wrap; gap: 18px; padding: 12px 0; border-bottom: 1px solid #252730; color: #9699a5; font-size: 11px; }
+    .profile-stats strong { color: #f2f3f7; font-size: 13px; }
+    .public-profile-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 13px; }
+    .public-profile-tabs { display: flex; gap: 18px; border-bottom: 1px solid #252730; }
+    .public-profile-tab { padding: 11px 5px; border-bottom: 2px solid transparent; color: #999ca6; font-size: 12px; font-weight: 600; }
+    .public-profile-tab.active { border-color: var(--accent); color: white; }
+    .follow-button { display: inline-flex; min-width: 98px; min-height: 36px; align-items: center; justify-content: center; padding: 0 13px; border: 1px solid rgba(255,128,87,.55); border-radius: 9px; background: var(--accent-soft); color: #ffad91; font-size: 12px; font-weight: 700; text-decoration: none; }
+    .follow-button:hover { background: rgba(255,77,20,.22); }
+    .profile-notice { margin: 12px 0; padding: 10px 12px; border: 1px solid rgba(75,211,154,.28); border-radius: 9px; background: rgba(75,211,154,.07); color: #9ae2c1; font-size: 12px; }
+    .profile-avatar-link { flex: 0 0 auto; }
+    .author-name { color: inherit; }
     .signout-button { padding: 9px 12px; border: 1px solid #38303a; border-radius: 8px; background: transparent; color: #c6c6ce; }
     .confirm-dialog { width: min(440px,calc(100% - 32px)); padding: 0; border: 1px solid #3b2e32; border-radius: 18px; background: #111218; color: var(--text); box-shadow: 0 28px 100px rgba(0,0,0,.7); }
+    .confirm-dialog[open],.verification-notice[open],.media-lightbox[open] { animation: modal-in .2s cubic-bezier(.2,.7,.25,1) both; }
     .confirm-dialog::backdrop { background: rgba(4,5,9,.78); backdrop-filter: blur(8px); }
     .confirm-content { padding: 25px; }
     .confirm-kicker { margin: 0 0 10px; color: #ff9878; font: 10px "DM Mono",monospace; letter-spacing: .13em; text-transform: uppercase; }
@@ -374,8 +476,21 @@
     .terminated-meta { margin-top: 7px; color: #aeb0bb; font-size: 11px; line-height: 1.7; }
     .banland-actions { display: flex; justify-content: flex-end; }
     .unban-button { padding: 8px 12px; border: 1px solid rgba(75,211,154,.35); border-radius: 8px; background: rgba(75,211,154,.08); color: #75dfaf; font-weight: 650; }
+    .mod-filter-form { display: flex; gap: 8px; margin: 14px 0; }
+    .mod-filter-form input { min-width: 0; flex: 1; height: 40px; padding: 0 11px; border: 1px solid #30323c; border-radius: 8px; background: #0b0c12; color: var(--text); }
+    .mod-filter-form button { min-height: 40px; padding: 0 13px; border: 1px solid #3a3b46; border-radius: 8px; background: #191a22; }
+    .audit-list { display: grid; gap: 9px; margin-top: 15px; }
+    .audit-entry { padding: 13px 14px; border: 1px solid #2b2d37; border-radius: 10px; background: #0d0f15; }
+    .audit-entry-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 14px; }
+    .audit-entry-head strong { color: #ffad8b; font-size: 12px; }
+    .audit-entry-head time { color: #9295a1; font: 10px "DM Mono",monospace; }
+    .audit-entry-meta { margin-top: 6px; color: #b8bac4; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+    .audit-entry-details { margin-top: 7px; color: #9699a5; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .audit-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; color: #999ca7; font-size: 11px; }
+    .audit-pagination a { padding: 8px 11px; border: 1px solid #343641; border-radius: 7px; background: #15161d; }
 
-    @keyframes card-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes card-in { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @keyframes heart-pop { 50% { transform: scale(1.35); } }
     @keyframes orbit { to { rotate: 360deg; } }
     @keyframes maintenance-drift { to { transform: translate3d(22px,18px,0) rotate(4deg) scale(1.04); } }
@@ -409,24 +524,52 @@
       .nav { display: flex; height: 100%; justify-content: space-around; gap: 0; }
       .nav-link { min-width: 42px; min-height: 44px; justify-content: center; padding: 0 10px; }
       .feed { padding-top: 8px; }
-      .post-body,.post-image,.comment-list,.comment-form,.poll-card,.reaction-bar,.post-interaction-error { margin-left: 0; }
-      .post-image { max-width: 100%; }
+      .post-body,.post-image-button,.comment-list,.comment-form,.poll-card,.post-interaction-error { margin-left: 0; }
+      .post-image-button { max-width: 100%; }
       .auth-card { padding: 30px 24px; }
       .settings-card { padding: 16px; }
       .mod-user { grid-template-columns: 1fr; }
       .mod-controls { justify-content: flex-start; }
+      .staff-action-group { grid-template-columns: 1fr; gap: 7px; }
+      .staff-role-form,.staff-mute-form,.staff-terminate-form { grid-template-columns: minmax(0,1fr); }
+      .staff-action-group button { width: 100%; white-space: normal; }
+      .post-menu-panel { width: min(330px,calc(100vw - 24px)); max-height: 68vh; }
     }
     @media (prefers-reduced-motion: reduce) {
-      *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+      *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
 
 <body>
+  <%
+    const safePendingAppeals = typeof pendingAppeals !== "undefined" && Array.isArray(pendingAppeals) ? pendingAppeals : [];
+    const safeBanlandQuery = typeof banlandQuery === "string" ? banlandQuery : "";
+    const safeAppealNotice = typeof appealNotice === "string" ? appealNotice : "";
+    const safeTerminatedAccount = typeof terminatedAccount !== "undefined" && terminatedAccount && typeof terminatedAccount === "object"
+      ? terminatedAccount
+      : {
+          displayName: "Chirpy account",
+          reason: "",
+          terminatedAt: null,
+          appealUsed: false,
+          appealStatus: "",
+          appealSubmittedAt: null,
+          appealDecisionAt: null,
+          appealEligible: false,
+          appealClosesAt: null,
+        };
+    function renderPartnerBadge(account) {
+      return account && account.partner
+        ? '<span class="badge partner" role="img" aria-label="Partner" title="Partner"><svg aria-hidden="true"><use href="#i-partner"></use></svg></span>'
+        : "";
+    }
+  %>
   <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="7.3"/><path d="m16.2 16.2 5 5"/></symbol>
     <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></symbol>
     <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4z"/></symbol>
     <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></symbol>
     <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1.08 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.1a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1.08Z"/></symbol>
@@ -440,7 +583,9 @@
     <symbol id="i-crown" viewBox="0 0 24 24"><path d="m2 7 5 4 5-7 5 7 5-4-2 12H4L2 7Z" fill="currentColor" stroke="currentColor"/><path d="M5 22h14" fill="none" stroke="currentColor"/></symbol>
     <symbol id="i-hammer" viewBox="0 0 24 24"><path d="m14 6 4-4 4 4-4 4M13 7l4 4-8 8a2.8 2.8 0 0 1-4-4l8-8ZM2 22l4-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" fill="currentColor" stroke="currentColor"/><path d="m8.5 12 2.2 2.2 4.8-4.8" fill="none" stroke="#08090d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-audit" viewBox="0 0 24 24"><path d="M8 4h11v17H5V7"/><path d="M8 2v5H3"/><path d="M9 11h6M9 15h6M9 19h3"/></symbol>
     <symbol id="i-verified" viewBox="0 0 24 24"><path d="M12 2.5 14.4 4l2.8-.2 1.2 2.5 2.5 1.2-.2 2.8 1.5 2.4-1.5 2.4.2 2.8-2.5 1.2-1.2 2.5-2.8-.2-2.4 1.5-2.4-1.5-2.8.2-1.2-2.5-2.5-1.2.2-2.8L2 12l1.5-2.4-.2-2.8 2.5-1.2L7 3.1l2.8.2L12 2.5Z" fill="currentColor" stroke="currentColor"/><path d="m8.5 12 2.2 2.2 4.8-4.8" fill="none" stroke="#08090d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-partner" viewBox="0 0 24 24"><path d="M3 16.8c4.1.1 4.2-8.6 9-9.5 3.5-.7 5.1 2.1 9 2.1-2 1.1-3.2 3.2-5.7 3.5-2 .2-3.1-.8-4.7-.5-2.4.5-3.2 4.7-7.6 4.4Z" fill="currentColor"/><path d="M6.1 19.7c3.5-.1 4.6-3.2 7.3-3.5 1.3-.2 2.5.2 4.1-.1-2.2 1.7-4.2 3.4-7.4 3.7-1.5.1-2.8.1-4-.1Z" fill="currentColor" opacity=".72"/></symbol>
   </svg>
 
   <% if (page === "landing") { %>
@@ -478,11 +623,11 @@
         <article class="legal-content">
           <p class="eyebrow">Chirpy · Service terms</p>
           <h1>Terms of Service</h1>
-          <p class="legal-intro">These terms explain the rules for using Chirpy, a community service with Discord sign-in, profiles, posts, images, messages, reactions, and polls. By accessing Chirpy, you agree to these terms. If you do not agree, do not use the service.</p>
+          <p class="legal-intro">These terms explain the rules for using Chirpy, a community service with Discord sign-in, profiles, posts, images, messages, notifications, and polls. By accessing Chirpy, you agree to these terms. If you do not agree, do not use the service.</p>
           <section><h2>1. Eligibility and your account</h2><p>Chirpy is intended for people who are at least 13 years old in the United States. You may not use Chirpy if you are under 13. If you are 13 or older but have not reached the age of majority where you live, you may use Chirpy only with the involvement and permission of a parent or legal guardian. You must also meet Discord’s applicable minimum-age requirements and follow Discord’s terms. You are responsible for activity under your account and for keeping access to your Discord account secure. Sign-in is provided by Discord; Chirpy does not receive or store your Discord password.</p></section>
-          <section><h2>2. Community content and conduct</h2><p>You are responsible for content you submit, including profile details, posts, uploaded images, comments, messages, reactions, and poll questions or options. You must have the rights and permissions needed to submit it. Do not use Chirpy to break the law, threaten or harass people, share another person’s private information without permission, impersonate others, distribute malware, infringe intellectual-property rights, or interfere with the service. Do not attempt to bypass access controls or misuse the service.</p></section>
-          <section><h2>3. Your content and permission to operate Chirpy</h2><p>You retain any rights you have in your content. You give Chirpy a limited, non-exclusive permission to host, store, reproduce, and display content as needed to provide and maintain the features you use, including showing posts and images to other users and storing poll votes and reactions. This permission ends when the content is removed from active service, subject to copies retained as described in the Privacy Policy and technical backups or records.</p></section>
-          <section><h2>4. Moderation and account restrictions</h2><p>Chirpy staff may review content and accounts, remove or hide posts, mute accounts, change access, or terminate accounts when reasonably needed to enforce these terms, respond to safety concerns, or protect the service. Moderation decisions may be made with or without advance notice where permitted by law. Terminated accounts lose access; related records may remain in the database, including hidden content and moderation records, as explained in the Privacy Policy.</p></section>
+          <section><h2>2. Community content and conduct</h2><p>You are responsible for content you submit, including profile details, posts, uploaded images, comments, messages, mentions, and poll questions or options. You must have the rights and permissions needed to submit it. Do not use Chirpy to break the law, threaten or harass people, share another person’s private information without permission, impersonate others, distribute malware, infringe intellectual-property rights, or interfere with the service. Do not attempt to bypass access controls or misuse the service.</p></section>
+          <section><h2>3. Your content and permission to operate Chirpy</h2><p>You retain any rights you have in your content. You give Chirpy a limited, non-exclusive permission to host, store, reproduce, and display content as needed to provide and maintain the features you use, including showing posts and images to other users, storing messages and poll votes, and displaying social activity notifications. This permission ends when the content is removed from active service, subject to copies retained as described in the Privacy Policy and technical backups or records.</p></section>
+          <section><h2>4. Moderation and account restrictions</h2><p>Chirpy staff may review content and accounts, remove or hide posts, mute accounts, change access, or terminate accounts when reasonably needed to enforce these terms, respond to safety concerns, or protect the service. Moderation decisions may be made with or without advance notice where permitted by law. Terminated accounts lose access. A terminated account may be appealed once within 30 days; after that period it cannot be reinstated and account content is scheduled for purge, subject to minimal reservation and moderation records described in the Privacy Policy.</p></section>
           <section><h2>5. Intellectual property and reports</h2><p>Chirpy’s name, logo, interface, and original service materials are owned by or licensed to the service operator and are protected by applicable law. These terms do not grant you ownership of them. If you believe content on Chirpy infringes your rights, contact the service operator using the contact information described below with enough detail to identify the content and your concern. No designated notice agent or legal contact has been configured yet.</p></section>
           <section><h2>6. Third-party services and availability</h2><p>Chirpy depends on third parties, including Discord for authentication and the MongoDB service configured by the operator for application data. Those services have their own terms, privacy practices, availability, and security controls. Chirpy may be changed, interrupted, or discontinued. Features are provided as available, and the operator does not promise uninterrupted service, error-free operation, or permanent availability of content.</p></section>
           <section><h2>7. Disclaimers and liability</h2><p>To the fullest extent allowed by law, Chirpy is provided “as is” and “as available,” without warranties of any kind, whether express, implied, or statutory, including implied warranties of merchantability, fitness for a particular purpose, and non-infringement. To the fullest extent allowed by law, the operator will not be liable for indirect, incidental, special, consequential, exemplary, or punitive damages, or for loss of data, profits, goodwill, or service access, arising from use of Chirpy. Nothing in these terms limits liability that cannot legally be limited or excludes rights that cannot legally be waived.</p></section>
@@ -493,13 +638,13 @@
         <article class="legal-content">
           <p class="eyebrow">Chirpy · Your information</p>
           <h1>Privacy Policy</h1>
-          <p class="legal-intro">This policy describes information handled by Chirpy, how it is used, and choices currently available. It applies to the Chirpy website and its posts, profiles, images, internal messages, reactions, polls, and moderation features.</p>
+          <p class="legal-intro">This policy describes information handled by Chirpy, how it is used, and choices currently available. It applies to the Chirpy website and its posts, profiles, images, internal messages, polls, mention notifications, and moderation features.</p>
           <section><h2>1. Who operates Chirpy</h2><p>The service operator has not supplied a legal business name, mailing address, or privacy contact. This page does not invent one. “Chirpy” below means the operator of this application. Operator contact information must be configured and published before production so people can direct privacy or safety requests to a responsible contact.</p></section>
-          <section><h2>2. Information the service handles</h2><ul><li><strong>Discord sign-in and profile:</strong> Discord account ID, username, display name, and avatar details returned by Discord’s identity sign-in. The app uses these to create and maintain your Chirpy account and profile.</li><li><strong>Content and activity:</strong> your Chirpy handle, display name, bio, posts, uploaded image bytes, comments, internal messages, likes, reposts, bookmarks, emoji reactions, poll questions/options and votes.</li><li><strong>Safety and service records:</strong> staff role, verification application and decision status, mute or termination status, and moderation audit records needed to administer the service.</li><li><strong>Technical data:</strong> the app uses an HttpOnly session cookie and keeps session identifiers and short-lived OAuth state in server memory. The hosting platform or network providers may generate technical or request logs according to their own settings; the operator has not configured a public log-retention statement.</li></ul></section>
+          <section><h2>2. Information the service handles</h2><ul><li><strong>Discord sign-in and profile:</strong> Discord account ID, username, display name, and avatar details returned by Discord’s identity sign-in. The app uses these to create and maintain your Chirpy account and profile.</li><li><strong>Content and activity:</strong> your Chirpy handle, display name, bio, posts, uploaded image bytes, comments, internal messages, likes, reposts, bookmarks, poll questions/options and votes, and social notification records for follows, mentions, comments, likes, reposts, and messages.</li><li><strong>Safety and service records:</strong> staff role, verification application and decision status, mute or termination status, and moderation audit records needed to administer the service.</li><li><strong>Technical data:</strong> the app uses an HttpOnly session cookie and stores session records and short-lived OAuth state in MongoDB. The sign-in cookie has a rolling 30-day inactivity expiration and is removed on sign-out. The hosting platform or network providers may generate technical or request logs according to their own settings; the operator has not configured a public log-retention statement.</li></ul></section>
           <section><h2>3. How information is used</h2><p>Information is used to authenticate users, operate accounts and profiles, display community content, save messages and interactions, record poll votes, administer moderation and verification, protect service integrity, and respond to operational or legal needs. Discord profile images may be loaded from Discord’s content-delivery network. The application code contains no advertising or analytics feature, but third-party hosting and infrastructure may process technical data under their own terms.</p></section>
-          <section><h2>4. Storage, sharing, and service providers</h2><p>Application records, including account data, user content, image bytes, messages, reactions, polls, and moderation records, are stored in the MongoDB database configured by the operator. Discord handles the authentication flow and supplies identity data; the app does not store your Discord password or retain the OAuth access token after retrieving your identity. The app is hosted on infrastructure selected by the operator. The specific hosting provider, processing locations, and provider retention settings have not been identified on this site. Data may be processed by those providers to deliver their services or as required by law; their own privacy policies apply.</p><p>The app does not provide a public directory of recipients or a configured data-sale integration. Content you post or send may be visible to the recipients or users allowed by the feature and may be copied by people who can access it.</p></section>
+          <section><h2>4. Storage, sharing, and service providers</h2><p>Application records, including account data, user content, image bytes, messages, polls, notifications, and moderation records, are stored in the MongoDB database configured by the operator. Discord handles the authentication flow and supplies identity data; the app does not store your Discord password or retain the OAuth access token after retrieving your identity. The app is hosted on infrastructure selected by the operator. The specific hosting provider, processing locations, and provider retention settings have not been identified on this site. Data may be processed by those providers to deliver their services or as required by law; their own privacy policies apply.</p><p>The app does not provide a public directory of recipients or a configured data-sale integration. Content you post or send may be visible to the recipients or users allowed by the feature and may be copied by people who can access it.</p></section>
           <section><h2>External resources</h2><p>The site loads typefaces from Google Fonts and may load Discord-hosted avatar images from Discord’s content-delivery network. Those providers may receive ordinary connection data, such as your IP address and browser request details, when your browser requests those resources.</p></section>
-          <section><h2>5. Retention and deletion</h2><p>Account and content records are retained in the configured database while the account and service operate. The app currently has no self-service account deletion or retention-period controls. Staff termination hides an account’s posts from the active feed and disables access but does not hard-delete the underlying account or post records. Moderation records may also be retained. Uploaded image data is stored with its post. Database backups, if enabled by the configured provider, may retain copies according to that provider’s settings, which are not specified here.</p><p>You may request access, correction, or deletion by contacting the operator, but no contact details or request workflow are currently configured. Requests cannot be reliably processed until the operator publishes a contact method. Applicable legal requirements may affect what can be deleted or retained.</p></section>
+          <section><h2>5. Retention and deletion</h2><p>Account and content records are retained in the configured database while the account and service operate. The app currently has no self-service account deletion. A terminated account is disabled and may be reinstated only within 30 days of its current termination. After 30 days, Chirpy purges the account and associated posts, uploaded images, comments, poll votes, messages, notifications, follows, likes, reposts, and bookmarks from the application database. Purge runs periodically, so removal may not happen at the exact deadline.</p><p>To prevent a deleted identity or handle from being reused to evade a termination or claim the same handle, Chirpy retains a minimal tombstone containing the reserved normalized handle (if any), the account’s original database identifier, a keyed hash of its Discord ID, termination date, and one-time appeal-use/status and decision-reference metadata. The submitted appeal text and profile/content data are not copied into this tombstone. Moderation audit entries, which can include staff-entered action details such as mute or termination reasons, are retained with account-ID references. These minimal records are not a restored user account and cannot be used to sign in. MongoDB backups, if enabled, and provider logs may retain copies according to provider settings that are not specified here.</p><p>One appeal may be submitted within 30 days of a termination. Once used, an appeal is not available again even if an account is reinstated and later terminated. Appeals pending at the 30-day purge deadline are recorded as expired; staff cannot reinstate an account after the deadline.</p><p>You may request access, correction, or deletion by contacting the operator, but no contact details or request workflow are currently configured. Requests cannot be reliably processed until the operator publishes a contact method. Applicable legal requirements may affect what can be deleted or retained.</p></section>
           <section><h2>6. Security</h2><p>The service uses reasonable application measures such as Discord-based authentication, an HttpOnly session cookie, and server-side role checks. No online service or storage system can be guaranteed secure, and the operator cannot promise that unauthorized access, loss, or disclosure will never occur. Avoid sending highly sensitive information through Chirpy messages or posts.</p></section>
           <section><h2>7. Children and COPPA</h2><p>Chirpy is not intended for children under 13 in the United States, and the operator does not knowingly seek to collect personal information from a child under 13. If the operator learns that a child under 13 has provided personal information, the operator should take steps to delete it. A parent or guardian who believes a child’s information was submitted should contact the operator; contact details have not yet been configured and must be supplied before production. Users must also satisfy Discord’s applicable age requirements.</p></section>
           <section><h2>8. U.S. privacy rights and policy changes</h2><p>Depending on where you live, state privacy laws may provide rights concerning personal information, such as access, correction, deletion, or opting out of certain processing. The app does not currently implement an automated privacy-request portal. Contact the operator once contact information is published to submit a request; the operator will assess and respond as required by applicable law. This policy may change as the service or its providers change. The updated version will be posted at this URL.</p></section>
@@ -533,6 +678,7 @@
           <div class="maintenance-deployment"><span>Deployment</span><strong><%= maintenanceSettings.progress %>%</strong></div>
           <progress class="maintenance-progress" aria-label="Deployment progress" max="100" value="<%= maintenanceSettings.progress %>"><%= maintenanceSettings.progress %>%</progress>
           <button id="openAdmin" class="maintenance-admin" type="button">Admin access</button>
+          <a class="maintenance-thanks" href="/login">Staff sign in with Discord</a>
           <div id="adminForm" hidden>
             <input id="adminPassword" class="maintenance-password" type="password" placeholder="Administrator password" autocomplete="current-password" />
             <p id="adminError" class="maintenance-error" aria-live="polite"></p>
@@ -585,6 +731,90 @@
       });
     </script>
 
+  <% } else if (page === "terminated") { %>
+    <main class="termination-page">
+      <a class="termination-wordmark" href="/"><img src="/images/chirpy.png?v=1" alt="" /><span>CHIRPY</span></a>
+      <section class="termination-card" aria-labelledby="terminationTitle">
+        <div class="termination-icon" aria-hidden="true">!</div>
+        <p class="eyebrow">Account status</p>
+        <h1 id="terminationTitle">This account is terminated</h1>
+        <p><%= safeTerminatedAccount.displayName %>, this Chirpy account is currently disabled and cannot access the app.</p>
+        <% if (safeTerminatedAccount.reason || safeTerminatedAccount.terminatedAt) { %>
+          <div class="termination-detail">
+            <% if (safeTerminatedAccount.reason) { %><strong>Notice:</strong> <%= safeTerminatedAccount.reason %><br /><% } %>
+            <% if (safeTerminatedAccount.terminatedAt) { %><strong>Effective:</strong> <time class="local-time" datetime="<%= new Date(safeTerminatedAccount.terminatedAt).toISOString() %>"><%= new Date(safeTerminatedAccount.terminatedAt).toISOString() %></time><% } %>
+          </div>
+        <% } %>
+        <% if (safeAppealNotice) { %><p class="appeal-notice" role="status"><%= safeAppealNotice %></p><% } %>
+        <section class="appeal-card" aria-labelledby="appealTitle">
+          <h2 id="appealTitle">Termination appeal</h2>
+          <% if (safeTerminatedAccount.appealStatus === "pending" && safeTerminatedAccount.appealEligible) { %>
+            <p class="appeal-status">Your one-time appeal has been submitted and is awaiting staff review. It cannot be edited or submitted again.</p>
+            <% if (safeTerminatedAccount.appealSubmittedAt) { %><p class="appeal-status">Submitted <time class="local-time" datetime="<%= new Date(safeTerminatedAccount.appealSubmittedAt).toISOString() %>"><%= new Date(safeTerminatedAccount.appealSubmittedAt).toISOString() %></time>.</p><% } %>
+          <% } else if (safeTerminatedAccount.appealStatus === "pending") { %>
+            <p class="appeal-status">Your one-time appeal was submitted but the 30-day period has passed. It can no longer result in reinstatement.</p>
+          <% } else if (safeTerminatedAccount.appealUsed) { %>
+            <p class="appeal-status"><% if (safeTerminatedAccount.appealStatus === "denied") { %>Your one-time appeal was denied. No further appeal can be submitted.<% } else if (safeTerminatedAccount.appealStatus === "accepted") { %>Your one-time appeal was accepted and the account was reinstated, but the account has since been terminated again. No further appeal can be submitted.<% } else if (safeTerminatedAccount.appealStatus === "expired") { %>Your one-time appeal expired at the end of the 30-day period. No further appeal can be submitted.<% } else { %>This account has already used its one-time appeal. No further appeal can be submitted.<% } %></p>
+            <% if (safeTerminatedAccount.appealDecisionAt) { %><p class="appeal-status">Decision recorded <time class="local-time" datetime="<%= new Date(safeTerminatedAccount.appealDecisionAt).toISOString() %>"><%= new Date(safeTerminatedAccount.appealDecisionAt).toISOString() %></time>.</p><% } %>
+          <% } else if (safeTerminatedAccount.appealEligible) { %>
+            <p class="appeal-status">You may submit one appeal within 30 days of this termination. <span class="appeal-window">Time remaining: <span class="appeal-countdown" data-closes-at="<%= new Date(safeTerminatedAccount.appealClosesAt).toISOString() %>"></span></span></p>
+            <p class="appeal-status">Your appeal is private and visible to Chirpy staff reviewing it. Do not include passwords, authentication codes, tokens, or other sensitive information.</p>
+            <form method="POST" action="/account-terminated/appeal">
+              <label for="appealText" class="muted">Explain why you believe this termination should be reviewed</label>
+              <textarea id="appealText" name="appealText" minlength="20" maxlength="2000" required placeholder="Describe the relevant context (20–2,000 characters)."></textarea>
+              <button type="submit">Submit one-time appeal</button>
+            </form>
+          <% } else { %>
+            <p class="appeal-status">The 30-day appeal period has expired or no termination date is available. An appeal can no longer be submitted.</p>
+          <% } %>
+        </section>
+        <div class="termination-actions">
+          <a class="primary" href="/">Back to public home</a>
+          <form method="POST" action="/logout"><button type="submit">Sign out</button></form>
+        </div>
+      </section>
+    </main>
+    <script>
+      document.querySelectorAll(".local-time").forEach((element) => {
+        const date = new Date(element.dateTime);
+        if (Number.isFinite(date.getTime())) {
+          element.textContent = new Intl.DateTimeFormat(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short"
+          }).format(date);
+        }
+      });
+      document.querySelectorAll(".appeal-countdown").forEach((element) => {
+        const closesAt = new Date(element.dataset.closesAt);
+        const updateCountdown = () => {
+          const remaining = closesAt.getTime() - Date.now();
+          if (!Number.isFinite(remaining) || remaining <= 0) {
+            element.textContent = "appeal period ended";
+            return;
+          }
+          const totalMinutes = Math.ceil(remaining / 60000);
+          const days = Math.floor(totalMinutes / 1440);
+          const hours = Math.floor((totalMinutes % 1440) / 60);
+          const minutes = totalMinutes % 60;
+          element.textContent = [days ? `${days}d` : "", hours ? `${hours}h` : "", `${minutes}m`].filter(Boolean).join(" ");
+        };
+        updateCountdown();
+        window.setInterval(updateCountdown, 60000);
+      });
+    </script>
+  <% } else if (page === "error") { %>
+    <main class="auth-page">
+      <a class="auth-brand" href="/"><img src="/images/chirpy.png?v=1" alt="" /> CHIRPY</a>
+      <section class="auth-card" role="alert">
+        <div class="termination-icon" aria-hidden="true"><%= statusCode || "!" %></div>
+        <p class="eyebrow">Chirpy · Request status</p>
+        <h1><%= statusCode === 404 ? "Page not found" : statusCode === 403 ? "Request blocked" : "We couldn't complete that" %></h1>
+        <p><%= statusMessage || "Please try again." %></p>
+        <a class="auth-btn" href="/app">Return to Chirpy</a>
+        <a class="back-home" href="/">Go to public home</a>
+      </section>
+    </main>
+
   <% } else if (page === "login") { %>
     <main class="auth-page">
       <a class="auth-brand" href="/"><img src="/images/chirpy.png?v=1" alt="" /> CHIRPY</a>
@@ -594,7 +824,7 @@
         <h1>Sign in with Discord</h1>
         <p>Connect your Discord account to continue. New users choose a Chirpy handle after signing in.</p>
         <% if (error) { %><p class="form-error"><%= error %></p><% } %>
-        <a class="auth-btn" href="/auth/discord">Continue with Discord</a>
+        <a class="auth-btn" href="/auth/discord?returnTo=<%= encodeURIComponent(returnTo || '/app') %>">Continue with Discord</a>
         <a class="back-home" href="/">← Back to Chirpy</a>
       </section>
     </main>
@@ -621,23 +851,85 @@
       </section>
     </main>
 
+  <% } else if (page === "public-profile") { %>
+    <main class="public-profile-page">
+      <a class="public-profile-home" href="/"><img src="/images/chirpy.png?v=1" alt="" width="22" height="22" /> Chirpy public profile</a>
+      <header class="public-profile-head">
+        <a class="avatar large profile-avatar-link" href="/profile/<%= encodeURIComponent(profileAccount.handle) %>" aria-label="View @<%= profileAccount.handle %>'s profile"><img src="<%= avatarUrl(profileAccount) %>" alt="" onerror="this.removeAttribute('src')" /><span><%= (profileAccount.displayName || profileAccount.username || "?").slice(0,1).toUpperCase() %></span></a>
+        <div><h1><%= profileAccount.displayName || profileAccount.username %><%- renderPartnerBadge(profileAccount) %>
+          <% if (profileAccount.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span>
+          <% } else if (profileAccount.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span>
+          <% } else if (profileAccount.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %>
+          <% if (["owner","manager","moderator"].includes(profileAccount.role) || profileAccount.verificationStatus === "verified") { %><span class="badge <%= profileAccount.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= profileAccount.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= profileAccount.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %>
+        </h1><span class="muted">@<%= profileAccount.handle %></span></div>
+      </header>
+      <% if (profileAccount.bio) { %><p class="public-profile-bio"><%= profileAccount.bio %></p><% } %>
+      <div class="profile-stats" aria-label="Profile statistics">
+        <span><strong><%= postCount %></strong> posts</span>
+        <span><strong><%= followersCount %></strong> followers</span>
+        <span><strong><%= followingCount %></strong> following</span>
+        <span><strong><%= likesReceived %></strong> likes received</span>
+      </div>
+      <div class="public-profile-toolbar">
+        <nav class="public-profile-tabs" aria-label="Profile posts">
+          <a class="public-profile-tab <%= profileView === 'posts' ? 'active' : '' %>" href="/profile/<%= encodeURIComponent(profileAccount.handle) %>?view=posts">Posts</a>
+          <a class="public-profile-tab <%= profileView === 'reposts' ? 'active' : '' %>" href="/profile/<%= encodeURIComponent(profileAccount.handle) %>?view=reposts">Reposts</a>
+        </nav>
+        <% if (viewer && String(viewer._id) !== String(profileAccount._id)) { %>
+          <form method="POST" action="/profile/<%= encodeURIComponent(profileAccount.handle) %>/follow">
+            <input type="hidden" name="follow" value="<%= isFollowing ? 'false' : 'true' %>" />
+            <button class="follow-button" type="submit"><%= isFollowing ? "Following · Unfollow" : "＋ Follow" %></button>
+          </form>
+        <% } else if (!viewer) { %>
+          <a class="follow-button" href="/login?returnTo=<%= encodeURIComponent(`/profile/${profileAccount.handle}`) %>">Sign in to follow</a>
+        <% } %>
+      </div>
+      <% if (profileNotice) { %><p class="profile-notice" role="status"><%= profileNotice %></p><% } %>
+      <section aria-label="<%= profileView === 'reposts' ? 'Reposts' : 'Posts' %>">
+        <% profilePosts.forEach((post) => { %>
+          <% const itemAuthor = post.author || profileAccount; const itemHandle = itemAuthor.handle || itemAuthor.username; const itemName = itemAuthor.displayName || itemAuthor.username; %>
+          <article class="post" id="<%= post._id %>">
+            <% if (profileView === "reposts") { %><div class="repost-note">↻ Reposted by @<%= profileAccount.handle %></div><% } %>
+            <header class="post-header">
+              <a class="avatar profile-avatar-link" href="/profile/<%= encodeURIComponent(itemHandle) %>" aria-label="View @<%= itemHandle %>'s profile"><img src="<%= avatarUrl(itemAuthor) %>" alt="" onerror="this.removeAttribute('src')" /><span><%= itemName.slice(0,1).toUpperCase() %></span></a>
+              <div class="post-author"><div class="author-line">
+                <a class="author-name" href="/profile/<%= encodeURIComponent(itemHandle) %>"><%= itemName %><%- renderPartnerBadge(itemAuthor) %>
+                  <% if (itemAuthor.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span>
+                  <% } else if (itemAuthor.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span>
+                  <% } else if (itemAuthor.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %>
+                  <% if (["owner","manager","moderator"].includes(itemAuthor.role) || itemAuthor.verificationStatus === "verified") { %><span class="badge <%= itemAuthor.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= itemAuthor.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= itemAuthor.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %>
+                </a>
+                <a class="author-handle" href="/profile/<%= encodeURIComponent(itemHandle) %>">@<%= itemHandle %></a>
+                <time class="timestamp local-time" datetime="<%= new Date(post.createdAt).toISOString() %>"><%= new Date(post.createdAt).toISOString() %></time>
+              </div></div>
+            </header>
+            <% if (post.text) { %><div class="post-body"><%= post.text %></div><% } %>
+            <% if (post.imageMime) { %><button type="button" class="post-image-button" data-image-src="/posts/<%= post._id %>/image" aria-label="Open post image"><img class="post-image" src="/posts/<%= post._id %>/image" alt="Post attachment; activate to view larger" loading="lazy" decoding="async" /><span class="image-load-fallback" hidden>Image unavailable</span></button><% } %>
+          </article>
+        <% }) %>
+        <% if (!profilePosts.length) { %><div class="empty"><strong><%= profileView === "reposts" ? "No reposts yet" : "No public posts yet" %></strong></div><% } %>
+      </section>
+    </main>
+
   <% } else if (page === "app") { %>
     <div class="app-shell">
       <aside class="sidebar">
         <a class="brand" href="/app"><img src="/images/chirpy.png?v=1" alt="" /><span class="brand-name">CHIRPY</span></a>
-        <div class="profile-mini"><div class="avatar small"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></div><div class="mini-name"><%= user.displayName %><span class="mini-badges"><% if (user.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span><% } else if (user.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span><% } else if (user.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %><% if (["owner","manager","moderator"].includes(user.role) || user.verificationStatus === "verified") { %><span class="badge <%= user.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %></span><span>@<%= user.handle %></span></div></div>
+        <div class="profile-mini"><a class="avatar small profile-avatar-link" href="/profile/<%= encodeURIComponent(user.handle) %>" aria-label="View your public profile"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></a><div class="mini-name"><%= user.displayName %><span class="mini-badges"><%- renderPartnerBadge(user) %><% if (user.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span><% } else if (user.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span><% } else if (user.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %><% if (["owner","manager","moderator"].includes(user.role) || user.verificationStatus === "verified") { %><span class="badge <%= user.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %></span><span>@<%= user.handle %></span></div></div>
         <nav class="nav" aria-label="Main navigation">
           <a class="nav-link <%= activeTab === 'home' ? 'active' : '' %>" href="/app"><svg><use href="#i-home"/></svg><span>Home</span></a>
           <a class="nav-link <%= activeTab === 'explore' ? 'active' : '' %>" href="/app?tab=explore"><svg><use href="#i-search"/></svg><span>Explore</span></a>
           <a class="nav-link <%= activeTab === 'messages' ? 'active' : '' %>" href="/app?tab=messages"><svg><use href="#i-mail"/></svg><span>Messages</span></a>
+          <a class="nav-link <%= activeTab === 'notifications' ? 'active' : '' %>" href="/app?tab=notifications"><svg><use href="#i-bell"/></svg><span>Notifications<% if (unreadNotificationCount) { %> · <%= unreadNotificationCount > 99 ? "99+" : unreadNotificationCount %><% } %></span></a>
           <a class="nav-link <%= activeTab === 'bookmarks' ? 'active' : '' %>" href="/app?tab=bookmarks"><svg><use href="#i-bookmark"/></svg><span>Bookmarks</span></a>
           <a class="nav-link <%= activeTab === 'profile' ? 'active' : '' %>" href="/app?tab=profile"><svg><use href="#i-user"/></svg><span>Profile</span></a>
           <a class="nav-link settings-link <%= activeTab === 'settings' ? 'active' : '' %>" href="/app?tab=settings"><svg viewBox="0 0 24 24"><use href="#i-settings"/></svg><span>Settings</span></a>
           <% if (["moderator","manager","owner"].includes(user.role)) { %><a class="nav-link <%= activeTab === 'moderation' ? 'active' : '' %>" href="/moderation"><svg><use href="#i-hammer"/></svg><span>Mod panel</span></a><% } %>
+          <% if (["moderator","manager","owner"].includes(user.role)) { %><a class="nav-link <%= activeTab === 'logs' ? 'active' : '' %>" href="/app?tab=logs"><svg><use href="#i-audit"/></svg><span>Mod logs</span></a><% } %>
           <% if (["manager","owner"].includes(user.role)) { %><a class="nav-link <%= activeTab === 'banland' ? 'active' : '' %>" href="/app?tab=banland"><svg><use href="#i-shield"/></svg><span>Banland</span></a><% } %>
         </nav>
         <% if (activeTab === "home" || activeTab === "explore") { %><button class="create-btn" id="openComposer" type="button">＋ Create post</button><% } %>
-        <div class="sidebar-bottom"><div class="avatar small"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></div><div class="mini-name"><%= user.displayName %><span class="mini-badges"><% if (user.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span><% } else if (user.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span><% } else if (user.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %><% if (["owner","manager","moderator"].includes(user.role) || user.verificationStatus === "verified") { %><span class="badge <%= user.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %></span><span>@<%= user.handle %></span></div><form method="POST" action="/logout"><button class="logout-btn" aria-label="Sign out">↗</button></form></div>
+        <div class="sidebar-bottom"><a class="avatar small profile-avatar-link" href="/profile/<%= encodeURIComponent(user.handle) %>" aria-label="View your public profile"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></a><div class="mini-name"><%= user.displayName %><span class="mini-badges"><%- renderPartnerBadge(user) %><% if (user.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span><% } else if (user.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span><% } else if (user.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %><% if (["owner","manager","moderator"].includes(user.role) || user.verificationStatus === "verified") { %><span class="badge <%= user.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %></span><span>@<%= user.handle %></span></div><form method="POST" action="/logout"><button class="logout-btn" aria-label="Sign out">↗</button></form></div>
       </aside>
 
       <main class="feed">
@@ -645,6 +937,8 @@
           <% if (activeTab === "explore") { %><form class="search-form" method="GET" action="/app"><input type="hidden" name="tab" value="explore" /><input class="search-input" name="q" value="<%= query %>" placeholder="Search posts and people…" /></form>
           <% } else { %><div style="flex:1;font-weight:600"><%= activeTab === "home" ? "Home" : activeTab === "profile" ? "Profile" : activeTab === "banland" ? "Banland" : activeTab.charAt(0).toUpperCase() + activeTab.slice(1) %></div><% } %>
         </div>
+        <% if (muteInfo) { %><div class="mute-banner" role="status"><strong>Your account is muted.</strong> Posting and interactions are disabled.<% if (muteInfo.until) { %><small>Mute expires <time class="local-time" datetime="<%= new Date(muteInfo.until).toISOString() %>"><%= new Date(muteInfo.until).toISOString() %></time> · <span class="mute-countdown" data-until="<%= new Date(muteInfo.until).toISOString() %>"></span></small><% } else { %><small>This mute is permanent until staff removes it.</small><% } %><% if (muteInfo.reason) { %><small>Reason: <%= muteInfo.reason %></small><% } %></div><% } %>
+        <div class="app-toast" id="appToast" role="status" aria-live="polite" data-message="<%= notice %>"></div>
         <template id="pollComposerTemplate">
           <div class="composer-poll-row"><button class="poll-toggle" type="button" aria-pressed="false">＋ Add poll</button></div>
           <div class="poll-editor" hidden>
@@ -660,14 +954,14 @@
 
         <% if (activeTab === "profile") { %>
           <section class="profile-header">
-            <div class="profile-info"><div class="avatar large"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></div><div><h2><%= user.displayName %>
+            <div class="profile-info"><a class="avatar large profile-avatar-link" href="/profile/<%= encodeURIComponent(user.handle) %>" aria-label="View your public profile"><img src="<%= avatarUrl(user) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><span><%= user.displayName.slice(0,1).toUpperCase() %></span></a><div><h2><%= user.displayName %><%- renderPartnerBadge(user) %>
               <% if (user.role === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span>
               <% } else if (user.role === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span>
               <% } else if (user.role === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %>
               <% if (["owner","manager","moderator"].includes(user.role) || user.verificationStatus === "verified") { %><span class="badge <%= user.verificationStatus === "verified" ? "verified" : "staff-check" %>" role="img" aria-label="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>" title="<%= user.verificationStatus === "verified" ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %>
             </h2><div class="muted">@<%= user.handle %></div></div></div>
             <p class="profile-bio"><%= user.bio || "No bio yet. Add one in Settings." %></p>
-            <div class="profile-count">Posts and reposts from your account</div>
+            <div class="profile-stats" aria-label="Profile statistics"><span><strong><%= postCount %></strong> posts</span><span><strong><%= followersCount %></strong> followers</span><span><strong><%= followingCount %></strong> following</span><span><strong><%= likesReceived %></strong> likes received</span></div>
             <nav class="profile-tabs"><a class="profile-tab <%= profileView === 'posts' ? 'active' : '' %>" href="/app?tab=profile&profileView=posts">Posts</a><a class="profile-tab <%= profileView === 'reposts' ? 'active' : '' %>" href="/app?tab=profile&profileView=reposts">Reposts</a></nav>
           </section>
           <button class="create-btn" id="openComposer" type="button" style="width:100%;margin:16px 0">＋ Create post</button>
@@ -692,26 +986,48 @@
             </section>
 
             <section class="settings-card">
+              <div class="settings-card-heading"><div class="settings-card-icon"><svg><use href="#i-bell"/></svg></div><div><h2>Notifications</h2><p>Control social activity alerts for follows, mentions, comments, likes, and reposts.</p></div></div>
+              <form class="settings-form" method="POST" action="/settings/notifications">
+                <label>Social notifications
+                  <select class="field" name="enabled">
+                    <option value="true" <%= user.socialNotificationsEnabled === false ? "" : "selected" %>>On</option>
+                    <option value="false" <%= user.socialNotificationsEnabled === false ? "selected" : "" %>>Off</option>
+                  </select>
+                </label>
+                <div class="settings-actions"><span class="settings-note">Verification and account-safety notices remain enabled.</span><button class="post-submit">Save notification setting</button></div>
+              </form>
+            </section>
+
+            <section class="settings-card">
               <div class="settings-card-heading"><div class="settings-card-icon"><svg><use href="#i-settings"/></svg></div><div><h2>Username</h2><p>Change your unique handle once every 14 days.</p></div></div>
               <div class="handle-current"><span>Current handle</span><strong>@<%= user.handle %></strong></div>
               <% if (handleError) { %><p class="settings-error"><%= handleError %></p><% } %>
               <form class="handle-form" method="POST" action="/settings/handle">
                 <label>New handle<input name="handle" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="new_handle" required /></label>
-                <div class="handle-status"><%= handleChangeAllowed ? "Handle changes are available now. A successful change starts a new 14-day cooldown." : "You can change your handle again on " + new Date(handleChangeAvailableAt).toLocaleDateString() + "." %></div>
+                <div class="handle-status"><% if (handleChangeAllowed) { %>Handle changes are available now. A successful change starts a new 14-day cooldown.<% } else { %>You can change your handle again on <time class="local-date" datetime="<%= new Date(handleChangeAvailableAt).toISOString() %>"><%= new Date(handleChangeAvailableAt).toISOString() %></time>.<% } %></div>
                 <div class="settings-actions"><span class="settings-note">3–20 letters, numbers, or underscores.</span><button class="post-submit" <%= handleChangeAllowed ? "" : "disabled" %>>Update handle</button></div>
               </form>
             </section>
 
             <section class="settings-card">
               <div class="settings-card-heading"><div class="settings-card-icon"><svg><use href="#i-verified"/></svg></div><div><h2>Verification</h2><p>Apply for an orange verified badge beside your name. Staff emblems are separate and do not grant verified status.</p></div></div>
+              <% if (verificationNotice) { %><p class="settings-error" role="status"><%= verificationNotice %></p><% } %>
               <% if (user.verificationStatus === "verified") { %><p class="status-label status-verified">Your account is verified.</p>
               <% } else if (user.verificationStatus === "pending") { %><p class="status-label status-pending">Your application is pending review.</p>
               <% } else { %>
-                <% if (user.verificationStatus === "rejected") { %><p class="status-label status-rejected">Your last application was not approved. You may apply again.</p><% } %>
-                <form class="verification-form" method="POST" action="/settings/verification">
-                  <label>Tell us why your account should be verified<textarea name="reason" minlength="20" maxlength="500" required placeholder="Share relevant public identity or authenticity details."></textarea></label>
-                  <button class="post-submit">Submit verification application</button>
-                </form>
+                <% if (user.verificationStatus === "rejected") { %><p class="status-label status-rejected">Your last application was not approved.</p><% } %>
+                <% if (maintenanceSettings.verificationEnabled === false) { %>
+                  <p class="settings-note">Applications are paused by site staff. You can apply when they reopen.</p>
+                <% } else if (!verificationApplicationAvailable) { %>
+                  <p class="settings-note">Applications are limited to one every seven days.
+                    <% if (verificationApplicationAvailableAt) { %>You can apply again on <time class="local-date" datetime="<%= new Date(verificationApplicationAvailableAt).toISOString() %>"><%= new Date(verificationApplicationAvailableAt).toISOString() %></time>.<% } else { %>Please try again after the cooldown period.<% } %>
+                  </p>
+                <% } else { %>
+                  <form class="verification-form" method="POST" action="/settings/verification">
+                    <label>Tell us why your account should be verified<textarea name="reason" minlength="20" maxlength="500" required placeholder="Share relevant public identity or authenticity details."></textarea></label>
+                    <button class="post-submit">Submit verification application</button>
+                  </form>
+                <% } %>
               <% } %>
             </section>
             <section class="settings-card"><strong>Sign out</strong><form method="POST" action="/logout" style="margin-top:12px"><button class="signout-button">Sign out</button></form></section>
@@ -720,7 +1036,27 @@
 
         <% if (activeTab === "moderation") { %>
           <div class="feed-heading"><h1>Moderation</h1><p>Staff tools, account roles, and verification review.</p></div>
-          <% if (["manager","owner"].includes(user.role)) { %><nav class="profile-tabs" aria-label="Moderation tools"><a class="profile-tab active" href="/app?tab=moderation">Moderation</a><a class="profile-tab" href="/app?tab=banland">Banland</a></nav><% } %>
+          <nav class="profile-tabs" aria-label="Moderation tools"><a class="profile-tab active" href="/app?tab=moderation">Moderation</a><a class="profile-tab" href="/app?tab=logs">Logs</a><% if (["manager","owner"].includes(user.role)) { %><a class="profile-tab" href="/app?tab=banland">Banland</a><% } %></nav>
+          <% if (["moderator","manager","owner"].includes(user.role)) { %>
+            <section class="mod-card">
+              <div class="mod-section-title"><h2>Termination appeals</h2><small><%= safePendingAppeals.length %> pending</small></div>
+              <% if (!safePendingAppeals.length) { %><div class="empty-small">There are no pending termination appeals.</div><% } %>
+              <% safePendingAppeals.forEach((appeal) => { %>
+                <article class="mod-user staff-account">
+                  <div class="staff-account-info">
+                    <div class="mod-user-name"><%= appeal.displayName || appeal.username %> · @<%= appeal.handle || "no-handle" %></div>
+                    <div class="mod-user-meta">Discord <%= appeal.discordId %> · Submitted <time class="local-time" datetime="<%= new Date(appeal.appealSubmittedAt).toISOString() %>"><%= new Date(appeal.appealSubmittedAt).toISOString() %></time></div>
+                    <div class="application-reason"><%= appeal.appealText %></div>
+                    <div class="terminated-meta"><strong>Termination reason:</strong> <%= appeal.terminationReason || "No reason recorded." %></div>
+                  </div>
+                  <div class="application-actions">
+                    <form method="POST" action="/moderation/appeals/<%= appeal._id %>"><input type="hidden" name="decision" value="accept" /><button class="post-submit" type="submit">Accept · Reinstate</button></form>
+                    <form method="POST" action="/moderation/appeals/<%= appeal._id %>"><input type="hidden" name="decision" value="deny" /><button class="mod-button danger" type="submit">Deny appeal</button></form>
+                  </div>
+                </article>
+              <% }) %>
+            </section>
+          <% } %>
           <section class="mod-card">
             <div class="mod-section-title"><h2>Maintenance mode</h2><small><%= maintenanceSettings.enabled ? "Currently on" : "Currently off" %></small></div>
             <% if (["owner","manager"].includes(user.role)) { %>
@@ -739,6 +1075,23 @@
               </form>
             <% } else { %>
               <p class="rail-note">Maintenance is <%= maintenanceSettings.enabled ? "on" : "off" %>. Managers and owners can change this setting.</p>
+            <% } %>
+          </section>
+          <section class="mod-card">
+            <div class="mod-section-title"><h2>Verification applications</h2><small><%= maintenanceSettings.verificationEnabled === false ? "Currently paused" : "Currently open" %></small></div>
+            <% if (["owner","manager"].includes(user.role)) { %>
+              <p class="rail-note">Choose whether members can submit verification applications. Existing applications remain available for staff review.</p>
+              <form class="settings-form" method="POST" action="/moderation/verification-settings">
+                <label>Application availability
+                  <select class="field" name="enabled">
+                    <option value="true" <%= maintenanceSettings.verificationEnabled === false ? "" : "selected" %>>Open applications</option>
+                    <option value="false" <%= maintenanceSettings.verificationEnabled === false ? "selected" : "" %>>Pause applications</option>
+                  </select>
+                </label>
+                <div class="settings-actions"><span class="settings-note">Only managers and owners can change this setting.</span><button class="post-submit">Save verification setting</button></div>
+              </form>
+            <% } else { %>
+              <p class="rail-note">Applications are <%= maintenanceSettings.verificationEnabled === false ? "paused" : "open" %>. Managers and owners can change this setting.</p>
             <% } %>
           </section>
           <% if (["owner","manager","moderator"].includes(user.role)) { %>
@@ -817,33 +1170,81 @@
               <% } %>
             </section>
           <% } %>
+          <% if (["owner","manager"].includes(user.role)) { %>
+            <section class="mod-card">
+              <div class="mod-section-title"><h2>Partner badges</h2><small>Managers and owners</small></div>
+              <p class="rail-note">Look up an existing account by Discord ID to grant or remove its independent partner emblem. You cannot change your own badge.</p>
+              <div class="partner-badge-tools">
+                <label for="partnerDiscordId">Discord user ID
+                  <input id="partnerDiscordId" inputmode="numeric" pattern="[0-9]{17,20}" maxlength="20" autocomplete="off" placeholder="17–20 digit Discord ID" />
+                </label>
+                <div class="partner-lookup-result" id="partnerLookupResult" role="status" aria-live="polite" hidden></div>
+              </div>
+            </section>
+          <% } %>
+          <% if (["owner","manager","moderator"].includes(user.role)) { %>
+            <section class="mod-card">
+              <div class="mod-section-title"><h2>Active mutes</h2><small><%= activeMutes.length %> accounts</small></div>
+              <form class="mod-filter-form" method="GET" action="/app"><input type="hidden" name="tab" value="moderation" /><input name="muteQ" value="<%= muteQuery %>" placeholder="Filter by name, handle, or Discord ID" aria-label="Filter active mutes" /><button type="submit">Search</button></form>
+              <% if (!activeMutes.length) { %><div class="empty-small">There are no active mutes.</div><% } %>
+              <% activeMutes.forEach((target) => { const muteActor = muteActorMap && muteActorMap[String(target.mutedBy)]; const targetRank = ({ user: 0, moderator: 1, manager: 2, owner: 3 })[target.role] ?? 0; const actorRank = ({ user: 0, moderator: 1, manager: 2, owner: 3 })[user.role] ?? 0; %>
+                <div class="mod-user">
+                  <div>
+                    <div class="mod-user-name"><%= target.displayName || target.username %> · @<%= target.handle || "no-handle" %></div>
+                    <div class="active-mute-meta">Reason: <%= target.mutedReason || "No reason supplied." %><br />
+                      Muted by <%= muteActor ? muteActor.displayName || muteActor.username : "staff" %> ·
+                      <% if (target.mutedUntil) { %>Expires <time class="local-time" datetime="<%= new Date(target.mutedUntil).toISOString() %>"><%= new Date(target.mutedUntil).toISOString() %></time> · <span class="mute-countdown" data-until="<%= new Date(target.mutedUntil).toISOString() %>"></span><% } else { %>Permanent<% } %>
+                    </div>
+                  </div>
+                  <% if (actorRank > targetRank && String(target._id) !== String(user._id) && target.discordId !== defaultOwnerDiscordId) { %><form method="POST" action="/moderation/users/<%= target._id %>/unmute"><button class="mod-button">Unmute</button></form><% } %>
+                </div>
+              <% }) %>
+            </section>
+          <% } %>
           <section class="mod-card">
             <div class="mod-section-title"><h2>Staff and accounts</h2><small><%= staffUsers.length %> accounts</small></div>
             <% staffUsers.forEach((target) => { %>
-              <div class="mod-user">
-                <div><div class="mod-user-name"><%= target.displayName %> · @<%= target.handle || "no-handle" %></div><div class="mod-user-meta">Discord <%= target.discordId %> · Role: <%= target.role %><%= target.muted ? " · Muted" : "" %><%= target.terminated ? " · Terminated" : "" %></div></div>
+              <div class="mod-user staff-account">
+                <div class="staff-account-info"><div class="mod-user-name"><%= target.displayName %> · @<%= target.handle || "no-handle" %></div><div class="mod-user-meta">Discord <%= target.discordId %> · Role: <%= target.role %><%= target.muted ? " · Muted" : "" %><%= target.terminated ? " · Terminated" : "" %></div></div>
                 <% if (!target.terminated && String(target._id) !== String(user._id) && target.discordId !== defaultOwnerDiscordId) { %>
-                  <div class="mod-controls">
+                  <div class="staff-account-actions">
+                    <% const targetRank = ({ user: 0, moderator: 1, manager: 2, owner: 3 })[target.role] ?? 0; const actorRank = ({ user: 0, moderator: 1, manager: 2, owner: 3 })[user.role] ?? 0; %>
                     <% if (["owner","manager"].includes(user.role) && (user.role === "owner" || ["user","moderator"].includes(target.role))) { %>
-                      <form class="role-form" method="POST" action="/moderation/roles">
-                        <input type="hidden" name="discordId" value="<%= target.discordId %>" />
-                        <select class="role-select" name="role" aria-label="Set role for Discord ID <%= target.discordId %>">
-                          <option value="user" <%= target.role === "user" ? "selected" : "" %>>User</option>
-                          <option value="moderator" <%= target.role === "moderator" ? "selected" : "" %>>Moderator</option>
-                          <% if (user.role === "owner") { %><option value="manager" <%= target.role === "manager" ? "selected" : "" %>>Manager</option><option value="owner" <%= target.role === "owner" ? "selected" : "" %>>Owner</option><% } %>
-                        </select>
-                        <button class="role-button">Save</button>
-                      </form>
+                      <div class="staff-action-group">
+                        <span class="staff-action-label">Role</span>
+                        <form class="role-form staff-role-form" method="POST" action="/moderation/roles">
+                          <input type="hidden" name="discordId" value="<%= target.discordId %>" />
+                          <select class="role-select" name="role" aria-label="Set role for Discord ID <%= target.discordId %>">
+                            <option value="user" <%= target.role === "user" ? "selected" : "" %>>User</option>
+                            <option value="moderator" <%= target.role === "moderator" ? "selected" : "" %>>Moderator</option>
+                            <% if (user.role === "owner") { %><option value="manager" <%= target.role === "manager" ? "selected" : "" %>>Manager</option><option value="owner" <%= target.role === "owner" ? "selected" : "" %>>Owner</option><% } %>
+                          </select>
+                          <button class="role-button">Save role</button>
+                        </form>
+                      </div>
                     <% } %>
-                    <% if (target.role !== "owner" || user.role === "owner") { %>
+                    <% if (actorRank > targetRank) { %>
                       <% if (target.muted) { %>
-                        <form method="POST" action="/moderation/users/<%= target._id %>/unmute"><button class="mod-button">Unmute</button></form>
+                        <div class="staff-action-group">
+                          <span class="staff-action-label">Mute</span>
+                          <form method="POST" action="/moderation/users/<%= target._id %>/unmute"><button class="mod-button">Unmute account</button></form>
+                        </div>
                       <% } else { %>
-                        <form method="POST" action="/moderation/users/<%= target._id %>/mute"><button class="mod-button">Mute</button></form>
+                        <div class="staff-action-group">
+                          <span class="staff-action-label">Mute</span>
+                          <form method="POST" action="/moderation/users/<%= target._id %>/mute" class="mute-form staff-mute-form">
+                            <select name="duration" aria-label="Mute duration"><option value="10m">10 minutes</option><option value="1h">1 hour</option><option value="24h">24 hours</option><option value="7d">7 days</option><option value="permanent">Permanent</option></select>
+                            <input name="reason" maxlength="300" placeholder="Optional reason" aria-label="Mute reason" />
+                            <button class="mod-button">Apply mute</button>
+                          </form>
+                        </div>
                       <% } %>
                     <% } %>
                     <% if (["owner","manager"].includes(user.role) && (user.role === "owner" || ["user","moderator"].includes(target.role))) { %>
-                      <form method="POST" action="/moderation/users/<%= target._id %>/terminate" class="confirm-action" data-confirm-title="Terminate this account?" data-confirm-message="The account will be disabled and its posts hidden. Its profile, content, and ban record will be retained and can be restored from Banland."><input class="field termination-reason" name="reason" maxlength="500" placeholder="Reason (optional)" aria-label="Termination reason" /><button class="mod-button danger">Terminate</button></form>
+                      <div class="staff-action-group">
+                        <span class="staff-action-label">Account</span>
+                        <form method="POST" action="/moderation/users/<%= target._id %>/terminate" class="confirm-action staff-terminate-form" data-confirm-title="Terminate this account?" data-confirm-message="The account will be disabled and its posts hidden. Its profile, content, and ban record will be retained and can be restored from Banland."><input class="field termination-reason" name="reason" maxlength="500" placeholder="Optional reason" aria-label="Termination reason" /><button class="mod-button danger">Terminate account</button></form>
+                      </div>
                     <% } %>
                   </div>
                 <% } %>
@@ -854,28 +1255,53 @@
 
         <% if (activeTab === "banland" && ["manager","owner"].includes(user.role)) { %>
           <div class="feed-heading"><h1>Banland</h1><p>Terminated accounts are retained here. Reinstating an account restores access and makes its retained posts visible again.</p></div>
-          <nav class="profile-tabs" aria-label="Moderation tools"><a class="profile-tab" href="/app?tab=moderation">Moderation</a><a class="profile-tab active" href="/app?tab=banland">Banland</a></nav>
+          <nav class="profile-tabs" aria-label="Moderation tools"><a class="profile-tab" href="/app?tab=moderation">Moderation</a><a class="profile-tab" href="/app?tab=logs">Logs</a><a class="profile-tab active" href="/app?tab=banland">Banland</a></nav>
           <section class="mod-card">
             <div class="mod-section-title"><h2>Terminated accounts</h2><small><%= terminatedUsers.length %> listed</small></div>
+            <form class="mod-filter-form" method="GET" action="/app"><input type="hidden" name="tab" value="banland" /><input name="banQ" value="<%= safeBanlandQuery %>" placeholder="Filter by name, handle, ID, or reason" aria-label="Filter terminated accounts" /><button type="submit">Search</button></form>
             <% if (!terminatedUsers.length) { %><div class="empty-small">No terminated accounts.</div><% } %>
             <% terminatedUsers.forEach((target) => { const terminationActor = terminationActorMap && terminationActorMap[String(target.terminatedBy)]; %>
               <div class="mod-user">
                 <div>
                   <div class="mod-user-name"><%= target.displayName %> · @<%= target.handle || "no-handle" %></div>
-                  <div class="mod-user-meta">Discord <%= target.discordId %><%= target.role ? " · Role: " + target.role : "" %></div>
+                  <% if (target.dataPurged) { %><div class="mod-user-meta">Account data purged after the 30-day retention period · identity and handle reservation retained</div>
+                  <% } else { %><div class="mod-user-meta">Discord <%= target.discordId %><%= target.role ? " · Role: " + target.role : "" %></div><% } %>
                   <div class="terminated-meta">
                     <strong>Reason:</strong> <%= target.terminationReason || "No reason recorded." %><br />
-                    <strong>Terminated:</strong> <%= target.terminatedAt ? new Date(target.terminatedAt).toLocaleString() : "Date unavailable" %><br />
-                    <strong>By:</strong> <%= terminationActor ? terminationActor.displayName || terminationActor.username : target.terminatedBy ? "Staff account " + target.terminatedBy : "Staff identity unavailable" %>
+                    <strong>Terminated:</strong> <% if (target.terminatedAt) { %><time class="local-time" datetime="<%= new Date(target.terminatedAt).toISOString() %>"><%= new Date(target.terminatedAt).toISOString() %></time><% } else { %>Date unavailable<% } %><br />
+                    <strong>By:</strong> <%= terminationActor ? terminationActor.displayName || terminationActor.username : target.terminatedBy ? "Staff account " + target.terminatedBy : "Staff identity unavailable" %><br />
+                    <% if (target.appealStatus) { %><strong>Appeal history:</strong> <%= target.appealStatus %><% if (target.appealSubmittedAt) { %> · submitted <time class="local-time" datetime="<%= new Date(target.appealSubmittedAt).toISOString() %>"><%= new Date(target.appealSubmittedAt).toISOString() %></time><% } %><% if (target.appealDecisionAt) { %> · decided <time class="local-time" datetime="<%= new Date(target.appealDecisionAt).toISOString() %>"><%= new Date(target.appealDecisionAt).toISOString() %></time><% } %><br /><% } %>
+                    <% if (target.dataPurged) { %><strong>Status:</strong> 30 days have passed. This account cannot be reinstated.<% } else if (target.reinstatementExpired) { %><strong>Status:</strong> 30 days have passed. Reinstatement is unavailable; account data is scheduled for purge.<% } else if (!target.canReinstate) { %><strong>Status:</strong> Reinstatement is unavailable because no valid termination date is recorded.<% } %>
                   </div>
                 </div>
                 <div class="banland-actions">
-                  <form method="POST" action="/moderation/users/<%= target._id %>/unban" class="confirm-action" data-confirm-title="Reinstate this account?" data-confirm-message="This restores sign-in access and unhides the account’s retained posts. The termination record remains available for audit.">
-                    <button class="unban-button">Reinstate account</button>
-                  </form>
+                  <% if (target.canReinstate) { %>
+                    <form method="POST" action="/moderation/users/<%= target._id %>/unban" class="confirm-action" data-confirm-title="Reinstate this account?" data-confirm-message="This restores sign-in access and unhides the account’s retained posts. The termination record remains available for audit.">
+                      <button class="unban-button">Reinstate account</button>
+                    </form>
+                  <% } %>
                 </div>
               </div>
             <% }) %>
+          </section>
+        <% } %>
+
+        <% if (activeTab === "logs" && ["moderator","manager","owner"].includes(user.role)) { %>
+          <div class="feed-heading"><h1>Moderation logs</h1><p>Staff actions are retained for review. Timestamps are shown in your browser’s local timezone.</p></div>
+          <nav class="profile-tabs" aria-label="Moderation tools"><a class="profile-tab" href="/app?tab=moderation">Moderation</a><a class="profile-tab active" href="/app?tab=logs">Logs</a><% if (["manager","owner"].includes(user.role)) { %><a class="profile-tab" href="/app?tab=banland">Banland</a><% } %></nav>
+          <section class="mod-card">
+            <form class="mod-filter-form" method="GET" action="/app"><input type="hidden" name="tab" value="logs" /><input name="logQ" value="<%= logQuery %>" placeholder="Filter by action, staff, account, or details" aria-label="Filter moderation logs" /><button type="submit">Search</button></form>
+            <% if (!auditLogs.length) { %><div class="empty-small">No moderation activity matches this filter.</div><% } %>
+            <div class="audit-list">
+              <% auditLogs.forEach((entry) => { const actor = auditActorMap[String(entry.actorId)]; const target = auditTargetMap[String(entry.targetId)]; const actorLabel = actor ? actor.displayName || actor.username : "Staff account"; const targetLabel = target ? `${target.displayName || target.username}${target.handle ? " · @" + target.handle : ""}` : entry.targetId === "global" ? "Site settings" : entry.targetId ? `Account ${entry.targetId}` : "Not recorded"; %>
+                <article class="audit-entry">
+                  <div class="audit-entry-head"><strong><%= entry.action.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()) %></strong><time class="local-time" datetime="<%= new Date(entry.createdAt).toISOString() %>"><%= new Date(entry.createdAt).toISOString() %></time></div>
+                  <div class="audit-entry-meta">By <strong><%= actorLabel %></strong><% if (actor && actor.handle) { %> · @<%= actor.handle %><% } %><br />Target: <%= targetLabel %></div>
+                  <% if (entry.details) { %><div class="audit-entry-details"><%= entry.details %></div><% } %>
+                </article>
+              <% }) %>
+            </div>
+            <% if (auditTotalPages > 1) { %><nav class="audit-pagination" aria-label="Moderation log pages"><% if (logPage > 1) { %><a href="/app?tab=logs&logQ=<%= encodeURIComponent(logQuery) %>&logPage=<%= logPage - 1 %>">← Newer</a><% } else { %><span></span><% } %><span>Page <%= logPage %> of <%= auditTotalPages %></span><% if (logPage < auditTotalPages) { %><a href="/app?tab=logs&logQ=<%= encodeURIComponent(logQuery) %>&logPage=<%= logPage + 1 %>">Older →</a><% } else { %><span></span><% } %></nav><% } %>
           </section>
         <% } %>
 
@@ -890,31 +1316,102 @@
           <form class="message-form" method="POST" action="/messages"><input name="handle" placeholder="Recipient handle" required /><textarea name="text" maxlength="1000" placeholder="Write a message…" required></textarea><button class="post-submit">Send message</button></form>
         <% } %>
 
+        <% if (activeTab === "notifications") { %>
+          <div class="feed-heading"><h1>Notifications</h1><p>Follows and activity on posts you authored or were mentioned in.</p></div>
+          <div class="notification-list">
+            <% notifications.forEach((notification) => {
+              const actor = notificationActorMap[String(notification.actorId)] || null;
+              const actorName = actor ? actor.displayName || actor.username : "A Chirpy member";
+              const notificationCopy = ({
+                follow: "started following you",
+                mention: "mentioned you in a post",
+                comment: "commented on your post",
+                like: "liked your post",
+                repost: "reposted your post",
+                message: "sent you a message",
+              })[notification.type] || "interacted with you";
+              const notificationHref = notification.type === "follow" && actor && actor.handle
+                ? `/profile/${encodeURIComponent(actor.handle)}`
+                : notification.type === "message"
+                  ? "/app?tab=messages"
+                : notification.postId
+                  ? `/app#${notification.postId}`
+                  : "/app?tab=notifications";
+            %>
+              <a class="notification-card <%= notification.unread ? "unread" : "" %>" href="<%= notificationHref %>">
+                <div class="avatar"><% if (actor) { %><img src="<%= avatarUrl(actor) %>" alt="" onerror="this.removeAttribute('src')" /><% } %><span><%= actorName.slice(0,1).toUpperCase() %></span></div>
+                <span><strong><%= actorName %><%- renderPartnerBadge(actor) %></strong> <%= notificationCopy %> · <time class="local-time" datetime="<%= new Date(notification.createdAt).toISOString() %>"><%= new Date(notification.createdAt).toISOString() %></time></span>
+              </a>
+            <% }) %>
+            <% if (!notifications.length) { %><div class="empty"><strong>No notifications yet</strong>New followers and activity on your posts will show up here.</div><% } %>
+          </div>
+        <% } %>
+
         <% if (activeTab === "bookmarks") { %><div class="feed-heading"><h1>Bookmarks</h1><p>Posts you’ve saved for later.</p></div><% } %>
         <% if (activeTab === "explore" && query) { %><div class="feed-heading"><h1>Search</h1><p>Results for “<%= query %>”</p></div><% } %>
 
         <% if (["home","explore","bookmarks","profile"].includes(activeTab)) { %>
           <% if (!posts.length) { %><div class="empty"><strong><%= activeTab === "profile" && profileView === "reposts" ? "No reposts yet" : activeTab === "profile" ? "No posts yet" : activeTab === "bookmarks" ? "Nothing saved yet" : "No posts found" %></strong><%= activeTab === "profile" && profileView === "reposts" ? "Posts you repost will show here." : activeTab === "bookmarks" ? "Bookmark a post to save it here." : "Try another search or be the first to post." %></div><% } %>
 
-          <% posts.forEach((post) => { const authorIdValue = post.authorId && post.authorId._id ? post.authorId._id : post.authorId; const authorId = String(authorIdValue && typeof authorIdValue.toHexString === "function" ? authorIdValue.toHexString() : authorIdValue || "").toLowerCase(); const author = post.author || userMap[authorId] || Object.values(userMap).find((entry) => String(entry._id && typeof entry._id.toHexString === "function" ? entry._id.toHexString() : entry._id || "").toLowerCase() === authorId); const authorName = author ? author.displayName || author.username : "Chirpy member"; const authorHandle = author ? author.handle || author.username : `member_${authorId.slice(-6)}`; const authorRole = author ? author.role : "user"; const verified = author && author.verificationStatus === "verified"; const liked = (post.likes || []).some((id) => String(id) === String(user._id)); const reposted = (post.reposts || []).some((id) => String(id) === String(user._id)); const bookmarked = (post.bookmarks || []).some((id) => String(id) === String(user._id)); const postImage = post.imageMime ? `/posts/${post._id}/image` : post.imageUrl; %>
+          <% posts.forEach((post) => { const authorIdValue = post.authorId && post.authorId._id ? post.authorId._id : post.authorId; const authorId = String(authorIdValue && typeof authorIdValue.toHexString === "function" ? authorIdValue.toHexString() : authorIdValue || "").toLowerCase(); const author = post.author || userMap[authorId] || Object.values(userMap).find((entry) => String(entry._id && typeof entry._id.toHexString === "function" ? entry._id.toHexString() : entry._id || "").toLowerCase() === authorId); const authorName = author ? author.displayName || author.username : "Chirpy member"; const authorHandle = author ? author.handle || author.username : `member_${authorId.slice(-6)}`; const authorRole = author ? author.role : "user"; const verified = author && author.verificationStatus === "verified"; const isOwnPost = author && String(author._id) === String(user._id); const canStaffManagePost = ["moderator","manager","owner"].includes(user.role); const liked = (post.likes || []).some((id) => String(id) === String(user._id)); const reposted = (post.reposts || []).some((id) => String(id) === String(user._id)); const bookmarked = (post.bookmarks || []).some((id) => String(id) === String(user._id)); const postImage = post.imageMime ? `/posts/${post._id}/image` : ""; %>
             <article class="post" id="<%= post._id %>">
-              <% const postReactions = post.reactions || []; const userReaction = postReactions.find((reaction) => String(reaction.userId) === String(user._id)); const postPollVotes = post.poll && post.poll.votes || []; const userPollVote = postPollVotes.find((vote) => String(vote.userId) === String(user._id)); const pollVoteCounts = post.poll ? post.poll.options.map((option, index) => postPollVotes.filter((vote) => vote.optionIndex === index).length) : []; const pollTotalVotes = pollVoteCounts.reduce((total, count) => total + count, 0); %>
+              <% const postPollVotes = post.poll && post.poll.votes || []; const userPollVote = postPollVotes.find((vote) => String(vote.userId) === String(user._id)); const pollVoteCounts = post.poll ? post.poll.options.map((option, index) => postPollVotes.filter((vote) => vote.optionIndex === index).length) : []; const pollTotalVotes = pollVoteCounts.reduce((total, count) => total + count, 0); %>
               <% if (activeTab === "profile" && profileView === "reposts") { %><div class="repost-note">↻ You reposted</div><% } %>
               <header class="post-header">
-                <div class="avatar"><% if (author) { %><img src="<%= avatarUrl(author) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><% } %><span><%= authorName.slice(0,1).toUpperCase() %></span></div>
+                <a class="avatar profile-avatar-link" href="/profile/<%= encodeURIComponent(authorHandle) %>" aria-label="View @<%= authorHandle %>'s profile"><% if (author) { %><img src="<%= avatarUrl(author) %>" alt="" onerror="this.dataset.fallback='';this.removeAttribute('src')" /><% } %><span><%= authorName.slice(0,1).toUpperCase() %></span></a>
                 <div class="post-author"><div class="author-line">
-                  <span class="author-name"><%= authorName %>
+                  <a class="author-name" href="/profile/<%= encodeURIComponent(authorHandle) %>"><%= authorName %><%- renderPartnerBadge(author) %>
                     <% if (authorRole === "owner") { %><span class="badge owner" role="img" aria-label="Owner" title="Owner"><svg aria-hidden="true"><use href="#i-crown"/></svg></span>
                     <% } else if (authorRole === "manager") { %><span class="badge manager" role="img" aria-label="Management" title="Management"><svg aria-hidden="true"><use href="#i-hammer"/></svg></span>
                     <% } else if (authorRole === "moderator") { %><span class="badge moderator" role="img" aria-label="Moderator" title="Moderator"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><% } %>
                     <% if (["owner","manager","moderator"].includes(authorRole) || verified) { %><span class="badge <%= verified ? "verified" : "staff-check" %>" role="img" aria-label="<%= verified ? "Verified" : "Staff" %>" title="<%= verified ? "Verified" : "Staff" %>"><svg aria-hidden="true"><use href="#i-verified"/></svg></span><% } %>
-                  </span>
-                  <span class="author-handle">@<%= authorHandle %></span>
-                  <span class="timestamp">· <%= new Date(post.createdAt).toLocaleString() %></span>
+                  </a>
+                  <a class="author-handle" href="/profile/<%= encodeURIComponent(authorHandle) %>">@<%= authorHandle %></a>
+                  <time class="timestamp local-time" datetime="<%= new Date(post.createdAt).toISOString() %>"><%= new Date(post.createdAt).toISOString() %></time>
                 </div></div>
+                <% if (isOwnPost || canStaffManagePost) { %>
+                  <div class="post-menu">
+                    <button class="post-menu-trigger" type="button" aria-label="Post actions" aria-expanded="false" aria-controls="post-menu-<%= post._id %>">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
+                    </button>
+                    <div class="post-menu-panel" id="post-menu-<%= post._id %>" role="region" aria-label="Actions for post by <%= authorName %>" hidden>
+                      <% if (isOwnPost) { %>
+                        <section class="post-menu-section" aria-label="Your post actions">
+                          <h3>Your post</h3>
+                          <button type="button" class="edit-post-trigger" data-post-id="<%= post._id %>" data-post-text="<%= post.text %>">Edit post text</button>
+                          <form method="POST" action="/posts/<%= post._id %>/delete" class="confirm-action" data-confirm-title="Delete your post?" data-confirm-message="This post will be removed from active feeds. Its record is retained for service integrity."><button type="submit" class="danger">Delete your post</button></form>
+                        </section>
+                      <% } %>
+                      <% if (canStaffManagePost && !isOwnPost) { %>
+                        <section class="post-menu-section" aria-label="Staff moderation actions">
+                          <h3>Moderation</h3>
+                          <% if (!isOwnPost) { %><form method="POST" action="/moderation/posts/<%= post._id %>/delete" class="confirm-action" data-confirm-title="Delete this post?" data-confirm-message="This post will be removed from the feed. This action cannot be undone."><button type="submit" class="danger">Delete post</button></form><% } %>
+                        <% if (author && !isOwnPost && author.discordId !== defaultOwnerDiscordId && (({ user: 0, moderator: 1, manager: 2, owner: 3 })[user.role] ?? 0) > (({ user: 0, moderator: 1, manager: 2, owner: 3 })[author.role] ?? 0)) { %>
+                          <% if (author.muted) { %><form method="POST" action="/moderation/users/<%= author._id %>/unmute"><button>Unmute user @<%= authorHandle %></button></form><% } else { %>
+                            <form method="POST" action="/moderation/users/<%= author._id %>/mute">
+                              <label class="menu-field-label" for="post-mute-duration-<%= post._id %>">Mute duration</label>
+                              <select id="post-mute-duration-<%= post._id %>" name="duration" aria-label="Mute duration"><option value="10m">10 minutes</option><option value="1h">1 hour</option><option value="24h">24 hours</option><option value="7d">7 days</option><option value="permanent">Permanent</option></select>
+                              <label class="menu-field-label" for="post-mute-reason-<%= post._id %>">Reason (optional)</label>
+                              <input id="post-mute-reason-<%= post._id %>" name="reason" maxlength="300" placeholder="Add a reason" />
+                              <button type="submit">Mute @<%= authorHandle %></button>
+                            </form>
+                          <% } %>
+                        <% } %>
+                        <% if (!isOwnPost && ["owner","manager"].includes(user.role) && author && (user.role === "owner" || ["user","moderator"].includes(author.role))) { %>
+                          <form method="POST" action="/moderation/users/<%= author._id %>/terminate" class="confirm-action" data-confirm-title="Terminate this account?" data-confirm-message="The account will be disabled and its posts hidden. Its profile, content, and ban record will be retained and can be restored from Banland.">
+                            <label class="menu-field-label" for="post-termination-reason-<%= post._id %>">Termination reason (optional)</label>
+                            <input id="post-termination-reason-<%= post._id %>" name="reason" maxlength="500" placeholder="Add a reason" />
+                            <button type="submit" class="danger">Terminate account</button>
+                          </form>
+                        <% } %>
+                        </section>
+                      <% } %>
+                    </div>
+                  </div>
+                <% } %>
               </header>
               <% if (post.text) { %><div class="post-body"><%= post.text %></div><% } %>
-              <% if (postImage) { %><a href="<%= postImage %>" target="_blank" rel="noopener noreferrer"><img class="post-image" src="<%= postImage %>" alt="Post attachment" loading="lazy" /></a><% } %>
+              <% if (postImage) { %><button type="button" class="post-image-button" data-image-src="<%= postImage %>" aria-label="Open post image"><img class="post-image" src="<%= postImage %>" alt="Post attachment; activate to view larger" loading="lazy" decoding="async" /><span class="image-load-fallback" hidden>Image unavailable</span></button><% } %>
               <% if (post.poll) { %>
                 <section class="poll-card" data-poll-id="<%= post._id %>">
                   <div class="poll-question"><strong><%= post.poll.question %></strong><span><%= pollTotalVotes %> <%= pollTotalVotes === 1 ? "vote" : "votes" %></span></div>
@@ -937,24 +1434,9 @@
                 <button class="icon-btn action-btn <%= bookmarked ? 'bookmarked' : '' %>" type="button" data-action="bookmark" data-id="<%= post._id %>" aria-label="Bookmark"><svg><use href="#i-bookmark"/></svg></button>
                 <button class="icon-btn share-btn" type="button" data-id="<%= post._id %>" aria-label="Share"><svg><use href="#i-share"/></svg></button>
               </div>
-              <div class="reaction-bar" aria-label="Emoji reactions">
-                <% ["❤️","😂","😮","😢","👍","🎉"].forEach((emoji) => { const reactionCount = postReactions.filter((reaction) => reaction.emoji === emoji).length; %>
-                  <button type="button" class="reaction-button <%= userReaction && userReaction.emoji === emoji ? "selected" : "" %>" data-emoji="<%= emoji %>" aria-label="React <%= emoji %>" aria-pressed="<%= Boolean(userReaction && userReaction.emoji === emoji) %>"><span><%= emoji %></span><small><%= reactionCount %></small></button>
-                <% }) %>
-              </div>
               <div class="post-interaction-error" role="alert" hidden></div>
               <div class="comment-list"><% (post.comments || []).forEach((comment) => { %><div class="comment"><strong>@<%= comment.handle %></strong><%= comment.text %></div><% }) %></div>
               <form class="comment-form" data-id="<%= post._id %>" hidden><input name="text" maxlength="300" placeholder="Write a comment…" required /><button>Reply</button></form>
-
-              <% if (["moderator","manager","owner"].includes(user.role)) { %>
-                <div class="mod-actions">
-                  <form method="POST" action="/moderation/posts/<%= post._id %>/delete" class="confirm-action" data-confirm-title="Delete this post?" data-confirm-message="This post will be removed from the feed. This action cannot be undone."><button class="mod-button danger">Delete post</button></form>
-                  <% if (author && String(author._id) !== String(user._id) && author.discordId !== defaultOwnerDiscordId && (author.role !== "owner" || user.role === "owner")) { %>
-                    <% if (author.muted) { %><form method="POST" action="/moderation/users/<%= author._id %>/unmute"><button class="mod-button">Unmute user</button></form><% } else { %><form method="POST" action="/moderation/users/<%= author._id %>/mute"><button class="mod-button">Mute user</button></form><% } %>
-                    <% if (["owner","manager"].includes(user.role) && (user.role === "owner" || ["user","moderator"].includes(author.role))) { %><form method="POST" action="/moderation/users/<%= author._id %>/terminate" class="confirm-action" data-confirm-title="Terminate this account?" data-confirm-message="The account will be disabled and its posts hidden. Its profile, content, and ban record will be retained and can be restored from Banland."><input class="field termination-reason" name="reason" maxlength="500" placeholder="Reason (optional)" aria-label="Termination reason" /><button class="mod-button danger">Terminate account</button></form><% } %>
-                  <% } %>
-                </div>
-              <% } %>
             </article>
           <% }) %>
         <% } %>
@@ -973,7 +1455,66 @@
         </div>
       </div>
     </dialog>
-    <% if (user.verificationRemovalNotice) { %>
+    <dialog class="confirm-dialog" id="editPostDialog" aria-labelledby="editPostTitle">
+      <form class="confirm-content" id="editPostForm">
+        <p class="confirm-kicker">Your post</p>
+        <h2 id="editPostTitle">Edit post text</h2>
+        <label class="sr-only" for="editPostText">Post text</label>
+        <textarea id="editPostText" maxlength="500" rows="6" style="width:100%;margin-top:14px;padding:12px;border:1px solid #353741;border-radius:9px;background:#090a0f;color:white;resize:vertical"></textarea>
+        <div class="post-interaction-error" id="editPostError" role="alert" hidden></div>
+        <div class="confirm-actions"><button type="button" id="cancelEditPost">Cancel</button><button type="submit" class="confirm-danger" id="saveEditPost">Save changes</button></div>
+      </form>
+    </dialog>
+    <dialog class="confirm-dialog" id="sessionExpiredDialog" aria-labelledby="sessionExpiredTitle" aria-describedby="sessionExpiredMessage">
+      <div class="confirm-content">
+        <p class="confirm-kicker">Sign-in needed</p>
+        <h2 id="sessionExpiredTitle">Your session expired</h2>
+        <p id="sessionExpiredMessage">This action was not applied. Sign in again to continue; we’ll return you to this page afterward.</p>
+        <div class="confirm-actions"><button type="button" id="dismissSessionExpired">Not now</button><a class="auth-btn" id="sessionExpiredLogin" href="/login?error=session" style="display:inline-flex;align-items:center;padding:0 15px">Sign in</a></div>
+      </div>
+    </dialog>
+    <% if (verificationOutcomeNotice) { %>
+      <dialog class="verification-notice" id="verificationOutcomeNotice" aria-labelledby="verificationOutcomeTitle" aria-describedby="verificationOutcomeMessage">
+        <div class="verification-notice-content">
+          <div class="verification-notice-icon" aria-hidden="true"><%= verificationOutcomeNotice.outcome === "approved" ? "✓" : "!" %></div>
+          <p class="confirm-kicker">Verification update</p>
+          <h2 id="verificationOutcomeTitle"><%= verificationOutcomeNotice.outcome === "approved" ? "Your account is verified" : "Verification application update" %></h2>
+          <p id="verificationOutcomeMessage"><%= verificationOutcomeNotice.outcome === "approved" ? "Your verification application was approved. The orange verified badge is now visible beside your name." : "Your verification application was not approved. If seven days have passed since submission and applications are open, you may submit another application." %></p>
+          <p class="settings-error" id="verificationOutcomeError" role="alert" hidden></p>
+          <button type="button" id="dismissVerificationOutcome">Understood</button>
+        </div>
+      </dialog>
+      <script>
+        const outcomeNoticeDialog = document.getElementById("verificationOutcomeNotice");
+        const outcomeNoticeButton = document.getElementById("dismissVerificationOutcome");
+        outcomeNoticeDialog.showModal();
+        outcomeNoticeButton.addEventListener("click", async () => {
+          outcomeNoticeButton.disabled = true;
+          try {
+            const response = await fetch("/settings/verification/outcome-seen", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                Accept: "application/json",
+              },
+              body: new URLSearchParams({ noticeId: "<%= verificationOutcomeNotice._id %>" }),
+            });
+            if (response.status === 401) throw new Error("Your session expired. Sign in again to acknowledge this notice.");
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.message || "Could not save this notice acknowledgement.");
+            outcomeNoticeDialog.close();
+          } catch (error) {
+            const errorElement = document.getElementById("verificationOutcomeError");
+            errorElement.textContent = error.message || "Could not save this notice acknowledgement.";
+            errorElement.hidden = false;
+          } finally {
+            outcomeNoticeButton.disabled = false;
+          }
+        });
+      </script>
+    <% } %>
+    <% if (user.verificationRemovalNotice && !verificationOutcomeNotice) { %>
       <dialog class="verification-notice" id="verificationRemovalNotice" aria-labelledby="verificationNoticeTitle" aria-describedby="verificationNoticeMessage">
         <div class="verification-notice-content">
           <div class="verification-notice-icon" aria-hidden="true">✓</div>
@@ -991,8 +1532,12 @@
         });
         window.requestAnimationFrame(() => {
           if (!verificationNotice.open || document.visibilityState !== "visible") return;
-          fetch("/settings/verification/notice-seen", { method: "POST" })
+          fetch("/settings/verification/notice-seen", {
+            method: "POST",
+            headers: { Accept: "application/json" }
+          })
             .then((response) => {
+              if (redirectToLoginIfNeeded(response)) return;
               if (!response.ok) throw new Error("Could not record verification notice display.");
             })
             .catch((error) => console.error(error));
@@ -1001,6 +1546,59 @@
     <% } %>
 
     <script>
+      const appToast = document.getElementById("appToast");
+      let toastTimer = null;
+      function showToast(message) {
+        if (!appToast) return;
+        appToast.textContent = message;
+        appToast.classList.add("visible");
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => appToast.classList.remove("visible"), 5000);
+      }
+      function redirectToLoginIfNeeded(response) {
+        if (response.status !== 401) return false;
+        const loginUrl = response.headers.get("X-Chirpy-Login-Url");
+        const dialog = document.getElementById("sessionExpiredDialog");
+        const loginLink = document.getElementById("sessionExpiredLogin");
+        if (loginLink && loginUrl) loginLink.href = loginUrl;
+        if (dialog && !dialog.open) dialog.showModal();
+        else if (!dialog) showToast("Your session expired. Sign in again to continue; this action was not applied.");
+        return true;
+      }
+      document.getElementById("dismissSessionExpired")?.addEventListener("click", () => {
+        document.getElementById("sessionExpiredDialog")?.close();
+      });
+      if (appToast?.dataset.message) showToast(appToast.dataset.message);
+
+      const localDateFormatter = new Intl.DateTimeFormat(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short"
+      });
+      document.querySelectorAll(".local-time,.local-date").forEach((element) => {
+        const date = new Date(element.dateTime);
+        if (Number.isFinite(date.getTime())) {
+          element.textContent = element.classList.contains("local-date")
+            ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date)
+            : localDateFormatter.format(date);
+        }
+      });
+      function updateMuteCountdowns() {
+        document.querySelectorAll(".mute-countdown[data-until]").forEach((element) => {
+          const remaining = new Date(element.dataset.until).getTime() - Date.now();
+          if (!Number.isFinite(remaining) || remaining <= 0) {
+            element.textContent = "expiring";
+            return;
+          }
+          const totalMinutes = Math.ceil(remaining / 60000);
+          const days = Math.floor(totalMinutes / 1440);
+          const hours = Math.floor((totalMinutes % 1440) / 60);
+          const minutes = totalMinutes % 60;
+          element.textContent = days ? `${days}d ${hours}h remaining` : hours ? `${hours}h ${minutes}m remaining` : `${minutes}m remaining`;
+        });
+      }
+      updateMuteCountdowns();
+      window.setInterval(updateMuteCountdowns, 60000);
+
       const confirmDialog = document.getElementById("confirmDialog");
       const confirmTitle = document.getElementById("confirmTitle");
       const confirmMessage = document.getElementById("confirmMessage");
@@ -1009,6 +1607,98 @@
       let pendingConfirmForm = null;
       let confirmedForm = null;
       let confirmedSubmitter = null;
+      const postMenuStates = [...document.querySelectorAll(".post-menu")].map((menu) => ({
+        menu,
+        trigger: menu.querySelector(".post-menu-trigger"),
+        panel: menu.querySelector(".post-menu-panel"),
+        closeTimer: null
+      }));
+      function closePostMenu(state, returnFocus = false) {
+        window.clearTimeout(state.closeTimer);
+        state.panel.classList.remove("is-open");
+        state.panel.hidden = true;
+        state.menu.append(state.panel);
+        state.panel.style.removeProperty("left");
+        state.panel.style.removeProperty("top");
+        state.trigger.setAttribute("aria-expanded", "false");
+        if (returnFocus) state.trigger.focus();
+      }
+      function closeAllPostMenus(except = null) {
+        postMenuStates.forEach((state) => {
+          if (state !== except && !state.panel.hidden) closePostMenu(state);
+        });
+      }
+      function openPostMenu(state) {
+        closeAllPostMenus(state);
+        window.clearTimeout(state.closeTimer);
+        state.panel.hidden = false;
+        state.panel.classList.remove("is-open");
+        state.trigger.setAttribute("aria-expanded", "true");
+        document.body.append(state.panel);
+
+        const triggerRect = state.trigger.getBoundingClientRect();
+        const panelRect = state.panel.getBoundingClientRect();
+        const edge = 12;
+        const left = Math.max(edge, Math.min(
+          triggerRect.right - panelRect.width,
+          window.innerWidth - panelRect.width - edge
+        ));
+        const belowTop = triggerRect.bottom + 7;
+        const top = belowTop + panelRect.height <= window.innerHeight - edge
+          ? belowTop
+          : Math.max(edge, triggerRect.top - panelRect.height - 7);
+        state.panel.style.left = `${left}px`;
+        state.panel.style.top = `${top}px`;
+        window.requestAnimationFrame(() => {
+          if (!state.panel.hidden) state.panel.classList.add("is-open");
+        });
+        const firstControl = state.panel.querySelector("button:not(:disabled),input:not(:disabled),select:not(:disabled),a[href]");
+        if (firstControl) firstControl.focus();
+      }
+
+      postMenuStates.forEach((state) => {
+        state.trigger.addEventListener("click", () => {
+          if (state.panel.hidden) openPostMenu(state);
+          else {
+            closePostMenu(state);
+            state.trigger.focus();
+          }
+        });
+        state.panel.addEventListener("click", (event) => event.stopPropagation());
+        state.panel.addEventListener("keydown", (event) => {
+          if (event.key !== "Tab") return;
+          const focusable = [...state.panel.querySelectorAll("button:not(:disabled),input:not(:disabled),select:not(:disabled),a[href]")];
+          if (!focusable.length) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        });
+      });
+      document.addEventListener("click", (event) => {
+        postMenuStates.forEach((state) => {
+          if (
+            !state.panel.hidden &&
+            !state.menu.contains(event.target) &&
+            !state.panel.contains(event.target)
+          ) closePostMenu(state);
+        });
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        const state = postMenuStates.find((item) => !item.panel.hidden);
+        if (state) {
+          event.preventDefault();
+          closePostMenu(state, true);
+        }
+      });
+      window.addEventListener("resize", () => closeAllPostMenus());
+      window.addEventListener("scroll", () => closeAllPostMenus(), { passive: true, capture: true });
 
       document.querySelectorAll(".confirm-action").forEach((form) => {
         form.addEventListener("submit", (event) => {
@@ -1017,6 +1707,7 @@
             return;
           }
           event.preventDefault();
+          closeAllPostMenus();
           pendingConfirmForm = form;
           confirmedSubmitter = event.submitter || form.querySelector("button[type='submit'],button:not([type])");
           confirmTitle.textContent = form.dataset.confirmTitle || "Confirm action";
@@ -1081,7 +1772,11 @@
             try {
               const response = await fetch(
                 `/moderation/roles/lookup?discordId=${encodeURIComponent(discordId)}`,
-                { signal: roleLookupController.signal, cache: "no-store" }
+                {
+                  signal: roleLookupController.signal,
+                  cache: "no-store",
+                  headers: { Accept: "application/json" }
+                }
               );
               const result = await response.json();
               if (requestId !== roleLookupRequest) return;
@@ -1112,6 +1807,107 @@
             } catch (lookupError) {
               if (lookupError.name !== "AbortError" && requestId === roleLookupRequest) {
                 roleAssignmentPreview.textContent = lookupError.message || "Could not check this Discord ID.";
+              }
+            }
+          }, 250);
+        });
+      }
+
+      const partnerDiscordIdInput = document.getElementById("partnerDiscordId");
+      const partnerLookupResult = document.getElementById("partnerLookupResult");
+      if (partnerDiscordIdInput && partnerLookupResult) {
+        let partnerLookupTimer = null;
+        let partnerLookupRequest = 0;
+        let partnerLookupController = null;
+
+        partnerDiscordIdInput.addEventListener("input", () => {
+          window.clearTimeout(partnerLookupTimer);
+          if (partnerLookupController) partnerLookupController.abort();
+          const requestId = ++partnerLookupRequest;
+          const discordId = partnerDiscordIdInput.value.trim();
+          partnerLookupResult.replaceChildren();
+          partnerLookupResult.hidden = Boolean(!discordId);
+          if (!discordId) return;
+          if (!/^\d{17,20}$/.test(discordId)) {
+            partnerLookupResult.textContent = "Enter a complete 17–20 digit Discord ID.";
+            return;
+          }
+
+          partnerLookupResult.textContent = "Looking up the existing account…";
+          partnerLookupTimer = window.setTimeout(async () => {
+            partnerLookupController = new AbortController();
+            try {
+              const response = await fetch(
+                `/moderation/roles/lookup?discordId=${encodeURIComponent(discordId)}`,
+                {
+                  signal: partnerLookupController.signal,
+                  cache: "no-store",
+                  headers: { Accept: "application/json" },
+                }
+              );
+              const result = await response.json();
+              if (requestId !== partnerLookupRequest) return;
+              if (!response.ok) throw new Error(result.message || "Account lookup failed.");
+
+              partnerLookupResult.replaceChildren();
+              if (!result.found) {
+                partnerLookupResult.textContent = result.message || "No existing Chirpy account was found.";
+                return;
+              }
+
+              const account = result.account;
+              const summary = document.createElement("span");
+              summary.className = "partner-status";
+              summary.textContent = `${account.displayName} · @${account.handle || account.username} · ${account.partner ? "Partner badge on" : "Partner badge off"}${account.terminated ? " · account terminated" : ""}`;
+              partnerLookupResult.append(summary);
+
+              if (account.partner) {
+                const emblem = document.createElement("span");
+                emblem.className = "badge partner";
+                emblem.setAttribute("role", "img");
+                emblem.setAttribute("aria-label", "Partner");
+                emblem.title = "Partner";
+                emblem.innerHTML = '<svg aria-hidden="true"><use href="#i-partner"></use></svg>';
+                partnerLookupResult.append(emblem);
+              }
+
+              if (account.terminated || account.isSelf) {
+                const unavailable = document.createElement("span");
+                unavailable.className = "partner-status";
+                unavailable.textContent = account.isSelf
+                  ? "You cannot change your own partner badge."
+                  : "Partner badges can only be managed for active accounts.";
+                partnerLookupResult.append(unavailable);
+                return;
+              }
+
+              const form = document.createElement("form");
+              form.method = "POST";
+              form.action = "/moderation/partner";
+              form.setAttribute("aria-label", "Update partner badge");
+              const idField = document.createElement("input");
+              idField.type = "hidden";
+              idField.name = "discordId";
+              idField.value = discordId;
+              const enabled = document.createElement("select");
+              enabled.name = "enabled";
+              enabled.setAttribute("aria-label", "Partner badge status");
+              for (const [value, label] of [["true", "Grant partner badge"], ["false", "Remove partner badge"]]) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = label;
+                option.selected = (value === "true") !== account.partner;
+                enabled.append(option);
+              }
+              const submit = document.createElement("button");
+              submit.type = "submit";
+              submit.className = "role-button";
+              submit.textContent = "Save partner badge";
+              form.append(idField, enabled, submit);
+              partnerLookupResult.append(form);
+            } catch (lookupError) {
+              if (lookupError.name !== "AbortError" && requestId === partnerLookupRequest) {
+                partnerLookupResult.textContent = lookupError.message || "Could not look up this account.";
               }
             }
           }, 250);
@@ -1223,6 +2019,7 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload)
             });
+            if (redirectToLoginIfNeeded(response)) return;
             const result = await response.json().catch(() => ({}));
             if (!response.ok) {
               throw new Error(result.message || "Could not publish the post.");
@@ -1249,6 +2046,7 @@
           button.disabled = true;
           try {
             const response = await fetch(`/posts/${button.dataset.id}/${button.dataset.action}`, { method: "POST" });
+            if (redirectToLoginIfNeeded(response)) return;
             const result = await response.json();
             if (!response.ok) throw new Error(result.message || "Action failed.");
             const action = button.dataset.action;
@@ -1256,39 +2054,9 @@
             const counter = button.querySelector("span");
             if (counter && action !== "bookmark") counter.textContent = result.count || "";
           } catch (error) {
-            alert(error.message);
+            showToast(error.message || "That action could not be completed.");
           } finally {
             button.disabled = false;
-          }
-        });
-      });
-
-      document.querySelectorAll(".reaction-button").forEach((button) => {
-        button.addEventListener("click", async () => {
-          const post = button.closest(".post");
-          const error = post.querySelector(".post-interaction-error");
-          const buttons = [...post.querySelectorAll(".reaction-button")];
-          error.hidden = true;
-          buttons.forEach((item) => { item.disabled = true; });
-          try {
-            const response = await fetch(`/posts/${post.id}/reactions`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ emoji: button.dataset.emoji })
-            });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || "Could not save reaction.");
-            buttons.forEach((item) => {
-              const emoji = item.dataset.emoji;
-              item.classList.toggle("selected", result.activeEmoji === emoji);
-              item.setAttribute("aria-pressed", String(result.activeEmoji === emoji));
-              item.querySelector("small").textContent = result.counts[emoji] || 0;
-            });
-          } catch (requestError) {
-            error.textContent = requestError.message || "Could not save reaction.";
-            error.hidden = false;
-          } finally {
-            buttons.forEach((item) => { item.disabled = false; });
           }
         });
       });
@@ -1307,6 +2075,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ optionIndex: Number(button.dataset.pollOption) })
               });
+              if (redirectToLoginIfNeeded(response)) return;
               const responseText = await response.text();
               let result;
               try {
@@ -1369,7 +2138,8 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ text: input.value })
             });
-            const result = await response.json();
+            if (redirectToLoginIfNeeded(response)) return;
+            const result = await response.json().catch(() => ({}));
             if (!response.ok) throw new Error(result.message || "Comment failed.");
             const line = document.createElement("div");
             line.className = "comment";
@@ -1381,7 +2151,7 @@
             const counter = form.closest(".post").querySelector(".comment-toggle span");
             if (counter) counter.textContent = result.count;
           } catch (error) {
-            alert(error.message);
+            showToast(error.message || "Your comment could not be saved.");
           } finally {
             submit.disabled = false;
           }
@@ -1398,11 +2168,135 @@
               button.title = "Link copied";
             }
           } catch (error) {
-            if (error.name !== "AbortError") alert("Couldn't share this post.");
+            if (error.name !== "AbortError") showToast("Couldn't share this post.");
           }
         });
       });
+
+      document.querySelectorAll(".edit-post-trigger").forEach((button) => {
+        button.addEventListener("click", () => {
+          const dialog = document.getElementById("editPostDialog");
+          const text = document.getElementById("editPostText");
+          const form = document.getElementById("editPostForm");
+          form.dataset.postId = button.dataset.postId;
+          text.value = button.dataset.postText || "";
+          document.getElementById("editPostError").hidden = true;
+          const ownerMenu = postMenuStates.find((state) => state.panel.contains(button));
+          if (ownerMenu) closePostMenu(ownerMenu);
+          dialog.showModal();
+          text.focus();
+        });
+      });
+
+      const editPostForm = document.getElementById("editPostForm");
+      if (editPostForm) {
+        const editPostDialog = document.getElementById("editPostDialog");
+        const editPostError = document.getElementById("editPostError");
+        const saveEditPost = document.getElementById("saveEditPost");
+        document.getElementById("cancelEditPost").addEventListener("click", () => editPostDialog.close());
+        editPostForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          saveEditPost.disabled = true;
+          editPostError.hidden = true;
+          try {
+            const response = await fetch(`/posts/${editPostForm.dataset.postId}/edit`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: document.getElementById("editPostText").value })
+            });
+            if (redirectToLoginIfNeeded(response)) return;
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(result.message || "The post could not be updated.");
+            editPostDialog.close();
+            window.location.reload();
+          } catch (error) {
+            editPostError.textContent = error.message || "The post could not be updated.";
+            editPostError.hidden = false;
+          } finally {
+            saveEditPost.disabled = false;
+          }
+        });
+      }
+
     </script>
   <% } %>
+  <dialog class="media-lightbox" id="mediaLightbox" aria-label="Image viewer">
+    <div class="media-lightbox-head"><span>Post image</span><button type="button" id="closeMediaLightbox" aria-label="Close image">×</button></div>
+    <img id="mediaLightboxImage" alt="Expanded post attachment" />
+    <p class="image-load-fallback" id="lightboxImageFallback" hidden>Image unavailable.</p>
+  </dialog>
+  <script>
+    document.querySelectorAll(".post-body").forEach((body) => {
+      const text = body.textContent || "";
+      const tokenPattern = /(^|[\s([{])(@[a-zA-Z0-9_]{3,20}|#[a-zA-Z0-9_]{1,40})/g;
+      const fragment = document.createDocumentFragment();
+      let cursor = 0;
+      for (const match of text.matchAll(tokenPattern)) {
+        const tokenStart = match.index + match[1].length;
+        const token = match[2];
+        if (tokenStart > cursor) fragment.append(document.createTextNode(text.slice(cursor, tokenStart)));
+        const link = document.createElement("a");
+        link.textContent = token;
+        if (token[0] === "@") {
+          link.href = `/profile/${encodeURIComponent(token.slice(1).toLowerCase())}`;
+        } else {
+          link.href = `/app?tab=explore&q=${encodeURIComponent(token)}`;
+        }
+        fragment.append(link);
+        cursor = tokenStart + token.length;
+      }
+      if (cursor < text.length) fragment.append(document.createTextNode(text.slice(cursor)));
+      body.replaceChildren(fragment);
+    });
+
+    const mediaLightbox = document.getElementById("mediaLightbox");
+    const lightboxImage = document.getElementById("mediaLightboxImage");
+    const lightboxFallback = document.getElementById("lightboxImageFallback");
+    const closeMediaLightbox = document.getElementById("closeMediaLightbox");
+    const closeLightbox = () => {
+      mediaLightbox.close();
+      lightboxImage.removeAttribute("src");
+      lightboxImage.hidden = false;
+      lightboxFallback.hidden = true;
+    };
+    document.querySelectorAll(".post-image-button").forEach((button) => {
+      const image = button.querySelector("img");
+      const fallback = button.querySelector(".image-load-fallback");
+      image.addEventListener("error", () => {
+        image.hidden = true;
+        fallback.hidden = false;
+      });
+      button.addEventListener("click", () => {
+        if (image.hidden) return;
+        lightboxFallback.hidden = true;
+        lightboxImage.hidden = false;
+        lightboxImage.src = button.dataset.imageSrc;
+        mediaLightbox.showModal();
+        closeMediaLightbox.focus();
+      });
+    });
+    closeMediaLightbox.addEventListener("click", closeLightbox);
+    mediaLightbox.addEventListener("click", (event) => {
+      if (event.target === mediaLightbox) closeLightbox();
+    });
+    lightboxImage.addEventListener("error", () => {
+      lightboxImage.hidden = true;
+      lightboxFallback.hidden = false;
+    });
+    mediaLightbox.addEventListener("close", () => {
+      lightboxImage.removeAttribute("src");
+      lightboxImage.hidden = false;
+      lightboxFallback.hidden = true;
+    });
+    document.querySelectorAll(".local-time").forEach((element) => {
+      const date = new Date(element.dateTime);
+      if (Number.isFinite(date.getTime())) {
+        element.textContent = new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short"
+        }).format(date);
+      }
+    });
+  </script>
 </body>
 </html>
