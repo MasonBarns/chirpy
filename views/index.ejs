@@ -608,6 +608,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.7 5.2a18.2 18.2 0 0 0-4.5-1.4l-.6 1.2a16.8 16.8 0 0 0-5.2 0l-.6-1.2a18.2 18.2 0 0 0-4.5 1.4C1.5 9.4.7 13.5 1.1 17.5a18.3 18.3 0 0 0 5.5 2.8l1.2-1.9-1.9-.9.5-.4a13 13 0 0 0 11.2 0l.5.4-1.9.9 1.2 1.9a18.3 18.3 0 0 0 5.5-2.8c.5-4.6-.8-8.7-3.2-12.3ZM8.7 14.8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2Zm6.6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2Z"/></svg>
           Continue with Discord
         </a>
+        <a class="landing-cta" href="/auth/google" style="margin-top:10px;background:#fff;color:#202124">Continue with Google</a>
         <p class="landing-footnote">Your community is waiting.</p>
         <nav class="landing-legal-links" aria-label="Legal information"><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a></nav>
       </section>
@@ -821,10 +822,11 @@
       <section class="auth-card">
         <div class="auth-logo"><img src="/images/chirpy.png?v=1" alt="Chirpy" /></div>
         <p class="eyebrow">Your Chirpy account</p>
-        <h1>Sign in with Discord</h1>
-        <p>Connect your Discord account to continue. New users choose a Chirpy handle after signing in.</p>
+        <h1>Sign in to Chirpy</h1>
+        <p>Use Discord or Google to continue. New users choose a Chirpy handle after signing in.</p>
         <% if (error) { %><p class="form-error"><%= error %></p><% } %>
         <a class="auth-btn" href="/auth/discord?returnTo=<%= encodeURIComponent(returnTo || '/app') %>">Continue with Discord</a>
+        <a class="auth-btn" href="/auth/google?returnTo=<%= encodeURIComponent(returnTo || '/app') %>" style="margin-top:10px;background:#fff;color:#202124;border-color:#d7d7d7">Continue with Google</a>
         <a class="back-home" href="/">← Back to Chirpy</a>
       </section>
     </main>
