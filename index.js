@@ -36,25 +36,21 @@ if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
 const PORT = Number(process.env.PORT) || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const OWNER_DISCORD_ID = "1281747369532194909";
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GOOGLE_REDIRECT_URI =
-  process.env.GOOGLE_REDIRECT_URI ||
-  `http://localhost:${PORT}/auth/google/callback`;
 const TOMBSTONE_HASH_SECRET =
   process.env.TOMBSTONE_HASH_SECRET || DISCORD_CLIENT_SECRET || ADMIN_PASSWORD;
 const DISCORD_REDIRECT_URI =
   process.env.DISCORD_REDIRECT_URI ||
   `http://localhost:${PORT}/auth/discord/callback`;
 
-const OWNER_DISCORD_ID = "1147930457439223920";
+
 const HANDLE_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000;
 const VERIFICATION_APPLICATION_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const APPEAL_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
-const LOGO_PATH = path.resolve(__dirname, "public", "images", "chripy.png");
+const LOGO_PATH = path.resolve(__dirname, "public", "images", "vextol-logo.png");
 
 if (!MONGODB_URI) {
   throw new Error("Add MONGODB_URI to your .env file to use persistent accounts.");
@@ -86,7 +82,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const userSchema = new mongoose.Schema(
   {
     discordId: { type: String, unique: true, sparse: true, index: true },
-    googleId: { type: String, unique: true, sparse: true, index: true },
+    isOwner: { type: Boolean, default: false },
     username: { type: String, required: true },
     handle: { type: String, lowercase: true, trim: true },
     displayName: { type: String, required: true, maxlength: 40 },
@@ -515,7 +511,7 @@ function safeReturnTo(value, fallback = "/app") {
   }
   try {
     const parsed = new URL(value, "http://chirpy.local");
-    if (parsed.origin !== "http://chirpy.local" || ["/login", "/logout", "/auth/discord", "/auth/discord/callback", "/auth/google", "/auth/google/callback"].includes(parsed.pathname)) {
+    if (parsed.origin !== "http://chirpy.local" || ["/login", "/logout", "/auth/discord", "/auth/discord/callback"].includes(parsed.pathname)) {
       return fallback;
     }
     return `${parsed.pathname}${parsed.search}${parsed.hash}`;
@@ -1285,10 +1281,6 @@ app.get(
 
     const loginErrors = {
       discord: "Discord sign-in was cancelled or could not be completed. Please try again.",
-      google: "Google sign-in was cancelled or could not be completed. Please try again.",
-      "google-config": "Google sign-in is not configured on this server. Please contact the site operator.",
-      "google-token": "Google could not complete sign-in. Please try again.",
-      "google-profile": "Chirpy could not read your Google profile. Please try again.",
       config: "Discord sign-in is not configured on this server. Please contact the site operator.",
       state: "Your sign-in session expired or could not be verified. Please try again.",
       session: "Your Chirpy session expired. Sign in again to continue; the last action was not applied.",
@@ -1301,111 +1293,6 @@ app.get(
       error: loginErrors[String(req.query.error || "")] || "",
       returnTo: session.returnTo,
     });
-  })
-);
-
-app.get(
-  "/auth/google",
-  asyncRoute(async (req, res) => {
-    const session = await getOrCreateSession(req, res);
-    if (req.query.returnTo) session.returnTo = safeReturnTo(String(req.query.returnTo));
-    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-      return res.redirect(`/login?error=google-config&returnTo=${encodeURIComponent(session.returnTo || "/app")}`);
-    }
-
-    const state = crypto.randomBytes(24).toString("hex");
-    await OAuthState.deleteMany({ sessionId: session._id });
-    await OAuthState.create({
-      stateHash: crypto.createHash("sha256").update(state).digest("hex"),
-      sessionId: session._id,
-      returnTo: safeReturnTo(session.returnTo || "/app"),
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-    });
-    await saveSession(session);
-
-    const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-    url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
-    url.searchParams.set("redirect_uri", GOOGLE_REDIRECT_URI);
-    url.searchParams.set("response_type", "code");
-    url.searchParams.set("scope", "openid email profile");
-    url.searchParams.set("state", state);
-    return res.redirect(url.toString());
-  })
-);
-
-app.get(
-  "/auth/google/callback",
-  asyncRoute(async (req, res) => {
-    const { code, state, error } = req.query;
-    const sessionId = readCookie(req, "chirpy_session");
-    const isValidStateShape = typeof state === "string" && /^[a-f0-9]{48}$/.test(state);
-    const flow = sessionId && isValidStateShape
-      ? await OAuthState.findOneAndDelete({
-          stateHash: crypto.createHash("sha256").update(state).digest("hex"),
-          sessionId,
-          expiresAt: { $gt: new Date() },
-        })
-      : null;
-    const existingSession = await getSession(req);
-    const returnTo = safeReturnTo(flow?.returnTo || existingSession?.returnTo || "/app");
-    if (!flow || error) return res.redirect(`/login?error=google&returnTo=${encodeURIComponent(returnTo)}`);
-    if (typeof code !== "string" || !code) return res.redirect(`/login?error=google-token&returnTo=${encodeURIComponent(returnTo)}`);
-
-    let tokenResponse;
-    try {
-      tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id: GOOGLE_CLIENT_ID,
-          client_secret: GOOGLE_CLIENT_SECRET,
-          grant_type: "authorization_code",
-          code,
-          redirect_uri: GOOGLE_REDIRECT_URI,
-        }),
-      });
-    } catch (requestError) {
-      console.error("Google token exchange request failed:", requestError.message);
-      return res.redirect(`/login?error=google-token&returnTo=${encodeURIComponent(returnTo)}`);
-    }
-    if (!tokenResponse.ok) {
-      console.error("Google token exchange failed:", await tokenResponse.text());
-      return res.redirect(`/login?error=google-token&returnTo=${encodeURIComponent(returnTo)}`);
-    }
-
-    const token = await tokenResponse.json();
-    const profileResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
-      headers: { Authorization: `Bearer ${token.access_token}` },
-    });
-    if (!profileResponse.ok) return res.redirect(`/login?error=google-profile&returnTo=${encodeURIComponent(returnTo)}`);
-    const profile = await profileResponse.json();
-    if (!profile.sub || profile.email_verified === false) {
-      return res.redirect(`/login?error=google-profile&returnTo=${encodeURIComponent(returnTo)}`);
-    }
-
-    let user = await User.findOne({ googleId: profile.sub });
-    if (!user) {
-      user = new User({
-        googleId: profile.sub,
-        username: profile.email || `google-${profile.sub.slice(-8)}`,
-        displayName: profile.name || profile.email || "Google user",
-        avatar: profile.picture || "",
-      });
-    } else {
-      user.username = profile.email || user.username;
-      user.displayName = profile.name || user.displayName || profile.email;
-      user.avatar = profile.picture || user.avatar;
-    }
-    if (user.terminated) return res.redirect("/account-terminated");
-    await user.save();
-    await rotateSession(req, res, {
-      adminVerified: true,
-      userId: user.id,
-      terminatedUserId: null,
-      discordState: null,
-      returnTo,
-    });
-    return res.redirect(user.handle ? returnTo : "/onboarding");
   })
 );
 
@@ -1575,6 +1462,7 @@ app.get(
     });
     if (profile.id === OWNER_DISCORD_ID) {
       user.role = "owner";
+      user.isOwner = true;
     } else if (pendingRoleAssignment) {
       user.role = pendingRoleAssignment.role;
     }
