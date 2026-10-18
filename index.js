@@ -50,7 +50,7 @@ const HANDLE_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000;
 const VERIFICATION_APPLICATION_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const APPEAL_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
-const LOGO_PATH = path.resolve(__dirname, "public", "images", "vextol-logo.png");
+const LOGO_PATH = path.resolve(__dirname, "public", "images", "chripy.png");
 
 if (!MONGODB_URI) {
   throw new Error("Add MONGODB_URI to your .env file to use persistent accounts.");
