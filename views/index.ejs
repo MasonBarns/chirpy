@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#08090d" />
-  <title><%= page === "app" ? "Chirpy" : page === "public-profile" ? `${profileAccount.displayName} · Chirpy` : page === "error" ? `${statusCode || "Error"} · Chirpy` : page === "moderation" ? "Moderation · Chirpy" : page === "login" ? "Sign in · Chirpy" : page === "onboarding" ? "Profile setup · Chirpy" : page === "terminated" ? "Account status · Chirpy" : page === "terms" ? "Terms of Service · Chirpy" : page === "privacy" ? "Privacy Policy · Chirpy" : page === "landing" ? "Chirpy — Find your people" : "Chirpy — Under Maintenance" %></title>
+  <title><%= page === "app" ? "Vextol" : page === "public-profile" ? `${profileAccount.displayName} · Vextol` : page === "error" ? `${statusCode || "Error"} · Vextol` : page === "moderation" ? "Moderation · Vextol" : page === "login" ? "Sign in · Vextol" : page === "onboarding" ? "Profile setup · Vextol" : page === "terminated" ? "Account status · Vextol" : page === "terms" ? "Terms of Service · Vextol" : page === "privacy" ? "Privacy Policy · Vextol" : page === "landing" ? "Vextol — Find your people" : "Vextol — Under Maintenance" %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -542,6 +542,7 @@
 </head>
 
 <body>
+  <img src="/images/vextol-logo.png" alt="Vextol" class="vextol-brand-logo" />
   <%
     const safePendingAppeals = typeof pendingAppeals !== "undefined" && Array.isArray(pendingAppeals) ? pendingAppeals : [];
     const safeBanlandQuery = typeof banlandQuery === "string" ? banlandQuery : "";
@@ -549,7 +550,7 @@
     const safeTerminatedAccount = typeof terminatedAccount !== "undefined" && terminatedAccount && typeof terminatedAccount === "object"
       ? terminatedAccount
       : {
-          displayName: "Chirpy account",
+          displayName: "Vextol account",
           reason: "",
           terminatedAt: null,
           appealUsed: false,
@@ -591,7 +592,7 @@
   <% if (page === "landing") { %>
     <main class="landing-page">
       <header class="landing-header">
-        <a class="landing-brand" href="/"><img src="/images/chirpy.png" alt="Chirpy" /><span>CHIRPY</span></a>
+        <a class="landing-brand" href="/"><img src="/images/chirpy.png" alt="Vextol" /><span>CHIRPY</span></a>
         <nav class="landing-nav" aria-label="Main navigation">
           <a href="#community">Community</a>
           <a href="/terms">Terms</a>
@@ -600,7 +601,7 @@
         </nav>
       </header>
       <section class="landing-hero" id="community">
-        <div class="landing-logo"><img src="/images/chirpy.png" alt="Chirpy" /></div>
+        <div class="landing-logo"><img src="/images/chirpy.png" alt="Vextol" /></div>
         <p class="landing-kicker">A community built around you</p>
         <h1 class="landing-title">Find your people.<br /><span>Start the conversation.</span></h1>
         <p class="landing-description">A place to share what matters, discover new perspectives, and keep up with the conversations that bring us together.</p>
@@ -608,7 +609,6 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.7 5.2a18.2 18.2 0 0 0-4.5-1.4l-.6 1.2a16.8 16.8 0 0 0-5.2 0l-.6-1.2a18.2 18.2 0 0 0-4.5 1.4C1.5 9.4.7 13.5 1.1 17.5a18.3 18.3 0 0 0 5.5 2.8l1.2-1.9-1.9-.9.5-.4a13 13 0 0 0 11.2 0l.5.4-1.9.9 1.2 1.9a18.3 18.3 0 0 0 5.5-2.8c.5-4.6-.8-8.7-3.2-12.3ZM8.7 14.8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2Zm6.6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2Z"/></svg>
           Continue with Discord
         </a>
-        <a class="landing-cta" href="/auth/google" style="margin-top:10px;background:#fff;color:#202124">Continue with Google</a>
         <p class="landing-footnote">Your community is waiting.</p>
         <nav class="landing-legal-links" aria-label="Legal information"><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a></nav>
       </section>
@@ -617,37 +617,37 @@
   <% } else if (page === "terms" || page === "privacy") { %>
     <main class="legal-page">
       <header class="legal-header">
-        <a class="legal-brand" href="/"><img src="/images/chirpy.png" alt="Chirpy" /><span>CHIRPY</span></a>
+        <a class="legal-brand" href="/"><img src="/images/chirpy.png" alt="Vextol" /><span>CHIRPY</span></a>
         <nav class="legal-nav" aria-label="Legal navigation"><a href="/">Home</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></nav>
       </header>
       <% if (page === "terms") { %>
         <article class="legal-content">
-          <p class="eyebrow">Chirpy · Service terms</p>
+          <p class="eyebrow">Vextol · Service terms</p>
           <h1>Terms of Service</h1>
-          <p class="legal-intro">These terms explain the rules for using Chirpy, a community service with Discord sign-in, profiles, posts, images, messages, notifications, and polls. By accessing Chirpy, you agree to these terms. If you do not agree, do not use the service.</p>
-          <section><h2>1. Eligibility and your account</h2><p>Chirpy is intended for people who are at least 13 years old in the United States. You may not use Chirpy if you are under 13. If you are 13 or older but have not reached the age of majority where you live, you may use Chirpy only with the involvement and permission of a parent or legal guardian. You must also meet Discord’s applicable minimum-age requirements and follow Discord’s terms. You are responsible for activity under your account and for keeping access to your Discord account secure. Sign-in is provided by Discord; Chirpy does not receive or store your Discord password.</p></section>
-          <section><h2>2. Community content and conduct</h2><p>You are responsible for content you submit, including profile details, posts, uploaded images, comments, messages, mentions, and poll questions or options. You must have the rights and permissions needed to submit it. Do not use Chirpy to break the law, threaten or harass people, share another person’s private information without permission, impersonate others, distribute malware, infringe intellectual-property rights, or interfere with the service. Do not attempt to bypass access controls or misuse the service.</p></section>
-          <section><h2>3. Your content and permission to operate Chirpy</h2><p>You retain any rights you have in your content. You give Chirpy a limited, non-exclusive permission to host, store, reproduce, and display content as needed to provide and maintain the features you use, including showing posts and images to other users, storing messages and poll votes, and displaying social activity notifications. This permission ends when the content is removed from active service, subject to copies retained as described in the Privacy Policy and technical backups or records.</p></section>
-          <section><h2>4. Moderation and account restrictions</h2><p>Chirpy staff may review content and accounts, remove or hide posts, mute accounts, change access, or terminate accounts when reasonably needed to enforce these terms, respond to safety concerns, or protect the service. Moderation decisions may be made with or without advance notice where permitted by law. Terminated accounts lose access. A terminated account may be appealed once within 30 days; after that period it cannot be reinstated and account content is scheduled for purge, subject to minimal reservation and moderation records described in the Privacy Policy.</p></section>
-          <section><h2>5. Intellectual property and reports</h2><p>Chirpy’s name, logo, interface, and original service materials are owned by or licensed to the service operator and are protected by applicable law. These terms do not grant you ownership of them. If you believe content on Chirpy infringes your rights, contact the service operator using the contact information described below with enough detail to identify the content and your concern. No designated notice agent or legal contact has been configured yet.</p></section>
-          <section><h2>6. Third-party services and availability</h2><p>Chirpy depends on third parties, including Discord for authentication and the MongoDB service configured by the operator for application data. Those services have their own terms, privacy practices, availability, and security controls. Chirpy may be changed, interrupted, or discontinued. Features are provided as available, and the operator does not promise uninterrupted service, error-free operation, or permanent availability of content.</p></section>
-          <section><h2>7. Disclaimers and liability</h2><p>To the fullest extent allowed by law, Chirpy is provided “as is” and “as available,” without warranties of any kind, whether express, implied, or statutory, including implied warranties of merchantability, fitness for a particular purpose, and non-infringement. To the fullest extent allowed by law, the operator will not be liable for indirect, incidental, special, consequential, exemplary, or punitive damages, or for loss of data, profits, goodwill, or service access, arising from use of Chirpy. Nothing in these terms limits liability that cannot legally be limited or excludes rights that cannot legally be waived.</p></section>
-          <section><h2>8. Changes and governing rules</h2><p>These terms may be updated as Chirpy changes or legal requirements evolve. The current version will be posted at this URL; continued use after an update takes effect means you accept the revised terms. These terms are intended to be governed by applicable United States law and, where applicable, the laws of the state in which the service operator is established, without displacing mandatory consumer protections that apply to you.</p></section>
+          <p class="legal-intro">These terms explain the rules for using Vextol, a community service with Discord sign-in, profiles, posts, images, messages, notifications, and polls. By accessing Vextol, you agree to these terms. If you do not agree, do not use the service.</p>
+          <section><h2>1. Eligibility and your account</h2><p>Vextol is intended for people who are at least 13 years old in the United States. You may not use Vextol if you are under 13. If you are 13 or older but have not reached the age of majority where you live, you may use Vextol only with the involvement and permission of a parent or legal guardian. You must also meet Discord’s applicable minimum-age requirements and follow Discord’s terms. You are responsible for activity under your account and for keeping access to your Discord account secure. Sign-in is provided by Discord; Vextol does not receive or store your Discord password.</p></section>
+          <section><h2>2. Community content and conduct</h2><p>You are responsible for content you submit, including profile details, posts, uploaded images, comments, messages, mentions, and poll questions or options. You must have the rights and permissions needed to submit it. Do not use Vextol to break the law, threaten or harass people, share another person’s private information without permission, impersonate others, distribute malware, infringe intellectual-property rights, or interfere with the service. Do not attempt to bypass access controls or misuse the service.</p></section>
+          <section><h2>3. Your content and permission to operate Vextol</h2><p>You retain any rights you have in your content. You give Vextol a limited, non-exclusive permission to host, store, reproduce, and display content as needed to provide and maintain the features you use, including showing posts and images to other users, storing messages and poll votes, and displaying social activity notifications. This permission ends when the content is removed from active service, subject to copies retained as described in the Privacy Policy and technical backups or records.</p></section>
+          <section><h2>4. Moderation and account restrictions</h2><p>Vextol staff may review content and accounts, remove or hide posts, mute accounts, change access, or terminate accounts when reasonably needed to enforce these terms, respond to safety concerns, or protect the service. Moderation decisions may be made with or without advance notice where permitted by law. Terminated accounts lose access. A terminated account may be appealed once within 30 days; after that period it cannot be reinstated and account content is scheduled for purge, subject to minimal reservation and moderation records described in the Privacy Policy.</p></section>
+          <section><h2>5. Intellectual property and reports</h2><p>Vextol’s name, logo, interface, and original service materials are owned by or licensed to the service operator and are protected by applicable law. These terms do not grant you ownership of them. If you believe content on Vextol infringes your rights, contact the service operator using the contact information described below with enough detail to identify the content and your concern. No designated notice agent or legal contact has been configured yet.</p></section>
+          <section><h2>6. Third-party services and availability</h2><p>Vextol depends on third parties, including Discord for authentication and the MongoDB service configured by the operator for application data. Those services have their own terms, privacy practices, availability, and security controls. Vextol may be changed, interrupted, or discontinued. Features are provided as available, and the operator does not promise uninterrupted service, error-free operation, or permanent availability of content.</p></section>
+          <section><h2>7. Disclaimers and liability</h2><p>To the fullest extent allowed by law, Vextol is provided “as is” and “as available,” without warranties of any kind, whether express, implied, or statutory, including implied warranties of merchantability, fitness for a particular purpose, and non-infringement. To the fullest extent allowed by law, the operator will not be liable for indirect, incidental, special, consequential, exemplary, or punitive damages, or for loss of data, profits, goodwill, or service access, arising from use of Vextol. Nothing in these terms limits liability that cannot legally be limited or excludes rights that cannot legally be waived.</p></section>
+          <section><h2>8. Changes and governing rules</h2><p>These terms may be updated as Vextol changes or legal requirements evolve. The current version will be posted at this URL; continued use after an update takes effect means you accept the revised terms. These terms are intended to be governed by applicable United States law and, where applicable, the laws of the state in which the service operator is established, without displacing mandatory consumer protections that apply to you.</p></section>
           <div class="legal-contact-note"><strong>Operator contact:</strong> Site operator contact information has not been supplied or configured. It must be added before production use so users can submit legal, safety, or account requests. These terms are general service information, not legal advice.</div>
         </article>
       <% } else { %>
         <article class="legal-content">
-          <p class="eyebrow">Chirpy · Your information</p>
+          <p class="eyebrow">Vextol · Your information</p>
           <h1>Privacy Policy</h1>
-          <p class="legal-intro">This policy describes information handled by Chirpy, how it is used, and choices currently available. It applies to the Chirpy website and its posts, profiles, images, internal messages, polls, mention notifications, and moderation features.</p>
-          <section><h2>1. Who operates Chirpy</h2><p>The service operator has not supplied a legal business name, mailing address, or privacy contact. This page does not invent one. “Chirpy” below means the operator of this application. Operator contact information must be configured and published before production so people can direct privacy or safety requests to a responsible contact.</p></section>
-          <section><h2>2. Information the service handles</h2><ul><li><strong>Discord sign-in and profile:</strong> Discord account ID, username, display name, and avatar details returned by Discord’s identity sign-in. The app uses these to create and maintain your Chirpy account and profile.</li><li><strong>Content and activity:</strong> your Chirpy handle, display name, bio, posts, uploaded image bytes, comments, internal messages, likes, reposts, bookmarks, poll questions/options and votes, and social notification records for follows, mentions, comments, likes, reposts, and messages.</li><li><strong>Safety and service records:</strong> staff role, verification application and decision status, mute or termination status, and moderation audit records needed to administer the service.</li><li><strong>Technical data:</strong> the app uses an HttpOnly session cookie and stores session records and short-lived OAuth state in MongoDB. The sign-in cookie has a rolling 30-day inactivity expiration and is removed on sign-out. The hosting platform or network providers may generate technical or request logs according to their own settings; the operator has not configured a public log-retention statement.</li></ul></section>
+          <p class="legal-intro">This policy describes information handled by Vextol, how it is used, and choices currently available. It applies to the Vextol website and its posts, profiles, images, internal messages, polls, mention notifications, and moderation features.</p>
+          <section><h2>1. Who operates Vextol</h2><p>The service operator has not supplied a legal business name, mailing address, or privacy contact. This page does not invent one. “Vextol” below means the operator of this application. Operator contact information must be configured and published before production so people can direct privacy or safety requests to a responsible contact.</p></section>
+          <section><h2>2. Information the service handles</h2><ul><li><strong>Discord sign-in and profile:</strong> Discord account ID, username, display name, and avatar details returned by Discord’s identity sign-in. The app uses these to create and maintain your Vextol account and profile.</li><li><strong>Content and activity:</strong> your Vextol handle, display name, bio, posts, uploaded image bytes, comments, internal messages, likes, reposts, bookmarks, poll questions/options and votes, and social notification records for follows, mentions, comments, likes, reposts, and messages.</li><li><strong>Safety and service records:</strong> staff role, verification application and decision status, mute or termination status, and moderation audit records needed to administer the service.</li><li><strong>Technical data:</strong> the app uses an HttpOnly session cookie and stores session records and short-lived OAuth state in MongoDB. The sign-in cookie has a rolling 30-day inactivity expiration and is removed on sign-out. The hosting platform or network providers may generate technical or request logs according to their own settings; the operator has not configured a public log-retention statement.</li></ul></section>
           <section><h2>3. How information is used</h2><p>Information is used to authenticate users, operate accounts and profiles, display community content, save messages and interactions, record poll votes, administer moderation and verification, protect service integrity, and respond to operational or legal needs. Discord profile images may be loaded from Discord’s content-delivery network. The application code contains no advertising or analytics feature, but third-party hosting and infrastructure may process technical data under their own terms.</p></section>
           <section><h2>4. Storage, sharing, and service providers</h2><p>Application records, including account data, user content, image bytes, messages, polls, notifications, and moderation records, are stored in the MongoDB database configured by the operator. Discord handles the authentication flow and supplies identity data; the app does not store your Discord password or retain the OAuth access token after retrieving your identity. The app is hosted on infrastructure selected by the operator. The specific hosting provider, processing locations, and provider retention settings have not been identified on this site. Data may be processed by those providers to deliver their services or as required by law; their own privacy policies apply.</p><p>The app does not provide a public directory of recipients or a configured data-sale integration. Content you post or send may be visible to the recipients or users allowed by the feature and may be copied by people who can access it.</p></section>
           <section><h2>External resources</h2><p>The site loads typefaces from Google Fonts and may load Discord-hosted avatar images from Discord’s content-delivery network. Those providers may receive ordinary connection data, such as your IP address and browser request details, when your browser requests those resources.</p></section>
-          <section><h2>5. Retention and deletion</h2><p>Account and content records are retained in the configured database while the account and service operate. The app currently has no self-service account deletion. A terminated account is disabled and may be reinstated only within 30 days of its current termination. After 30 days, Chirpy purges the account and associated posts, uploaded images, comments, poll votes, messages, notifications, follows, likes, reposts, and bookmarks from the application database. Purge runs periodically, so removal may not happen at the exact deadline.</p><p>To prevent a deleted identity or handle from being reused to evade a termination or claim the same handle, Chirpy retains a minimal tombstone containing the reserved normalized handle (if any), the account’s original database identifier, a keyed hash of its Discord ID, termination date, and one-time appeal-use/status and decision-reference metadata. The submitted appeal text and profile/content data are not copied into this tombstone. Moderation audit entries, which can include staff-entered action details such as mute or termination reasons, are retained with account-ID references. These minimal records are not a restored user account and cannot be used to sign in. MongoDB backups, if enabled, and provider logs may retain copies according to provider settings that are not specified here.</p><p>One appeal may be submitted within 30 days of a termination. Once used, an appeal is not available again even if an account is reinstated and later terminated. Appeals pending at the 30-day purge deadline are recorded as expired; staff cannot reinstate an account after the deadline.</p><p>You may request access, correction, or deletion by contacting the operator, but no contact details or request workflow are currently configured. Requests cannot be reliably processed until the operator publishes a contact method. Applicable legal requirements may affect what can be deleted or retained.</p></section>
-          <section><h2>6. Security</h2><p>The service uses reasonable application measures such as Discord-based authentication, an HttpOnly session cookie, and server-side role checks. No online service or storage system can be guaranteed secure, and the operator cannot promise that unauthorized access, loss, or disclosure will never occur. Avoid sending highly sensitive information through Chirpy messages or posts.</p></section>
-          <section><h2>7. Children and COPPA</h2><p>Chirpy is not intended for children under 13 in the United States, and the operator does not knowingly seek to collect personal information from a child under 13. If the operator learns that a child under 13 has provided personal information, the operator should take steps to delete it. A parent or guardian who believes a child’s information was submitted should contact the operator; contact details have not yet been configured and must be supplied before production. Users must also satisfy Discord’s applicable age requirements.</p></section>
+          <section><h2>5. Retention and deletion</h2><p>Account and content records are retained in the configured database while the account and service operate. The app currently has no self-service account deletion. A terminated account is disabled and may be reinstated only within 30 days of its current termination. After 30 days, Vextol purges the account and associated posts, uploaded images, comments, poll votes, messages, notifications, follows, likes, reposts, and bookmarks from the application database. Purge runs periodically, so removal may not happen at the exact deadline.</p><p>To prevent a deleted identity or handle from being reused to evade a termination or claim the same handle, Vextol retains a minimal tombstone containing the reserved normalized handle (if any), the account’s original database identifier, a keyed hash of its Discord ID, termination date, and one-time appeal-use/status and decision-reference metadata. The submitted appeal text and profile/content data are not copied into this tombstone. Moderation audit entries, which can include staff-entered action details such as mute or termination reasons, are retained with account-ID references. These minimal records are not a restored user account and cannot be used to sign in. MongoDB backups, if enabled, and provider logs may retain copies according to provider settings that are not specified here.</p><p>One appeal may be submitted within 30 days of a termination. Once used, an appeal is not available again even if an account is reinstated and later terminated. Appeals pending at the 30-day purge deadline are recorded as expired; staff cannot reinstate an account after the deadline.</p><p>You may request access, correction, or deletion by contacting the operator, but no contact details or request workflow are currently configured. Requests cannot be reliably processed until the operator publishes a contact method. Applicable legal requirements may affect what can be deleted or retained.</p></section>
+          <section><h2>6. Security</h2><p>The service uses reasonable application measures such as Discord-based authentication, an HttpOnly session cookie, and server-side role checks. No online service or storage system can be guaranteed secure, and the operator cannot promise that unauthorized access, loss, or disclosure will never occur. Avoid sending highly sensitive information through Vextol messages or posts.</p></section>
+          <section><h2>7. Children and COPPA</h2><p>Vextol is not intended for children under 13 in the United States, and the operator does not knowingly seek to collect personal information from a child under 13. If the operator learns that a child under 13 has provided personal information, the operator should take steps to delete it. A parent or guardian who believes a child’s information was submitted should contact the operator; contact details have not yet been configured and must be supplied before production. Users must also satisfy Discord’s applicable age requirements.</p></section>
           <section><h2>8. U.S. privacy rights and policy changes</h2><p>Depending on where you live, state privacy laws may provide rights concerning personal information, such as access, correction, deletion, or opting out of certain processing. The app does not currently implement an automated privacy-request portal. Contact the operator once contact information is published to submit a request; the operator will assess and respond as required by applicable law. This policy may change as the service or its providers change. The updated version will be posted at this URL.</p></section>
           <div class="legal-contact-note"><strong>Privacy contact:</strong> Site operator contact information has not been supplied or configured. This is an explicit operational gap, not a promise that a request portal or dedicated privacy officer exists. This policy is informational and is not legal advice.</div>
         </article>
@@ -666,12 +666,12 @@
       <section class="maintenance-card">
         <div class="maintenance-main">
           <div class="maintenance-brand">
-            <div class="maintenance-logo"><img src="/images/chirpy.png?v=1" alt="Chirpy" /></div>
+            <div class="maintenance-logo"><img src="/images/chirpy.png?v=1" alt="Vextol" /></div>
             <div class="maintenance-brand-copy"><p class="eyebrow">System notice</p><strong>CHIRPY</strong></div>
           </div>
           <p class="maintenance-kicker">A better experience is loading</p>
           <h1 class="maintenance-title">Under<br />Maintenance.</h1>
-          <p class="maintenance-description">We’re refining Chirpy behind the scenes. The platform will return shortly with a cleaner, faster, and more polished experience.</p>
+          <p class="maintenance-description">We’re refining Vextol behind the scenes. The platform will return shortly with a cleaner, faster, and more polished experience.</p>
         </div>
         <aside class="maintenance-side">
           <p class="maintenance-side-label">Current status</p>
@@ -685,7 +685,7 @@
             <p id="adminError" class="maintenance-error" aria-live="polite"></p>
             <button id="verifyAdmin" class="maintenance-admin" type="button">Continue</button>
           </div>
-          <p class="maintenance-thanks">Thank you for your patience while we make Chirpy better.</p>
+          <p class="maintenance-thanks">Thank you for your patience while we make Vextol better.</p>
         </aside>
       </section>
     </main>
@@ -739,7 +739,7 @@
         <div class="termination-icon" aria-hidden="true">!</div>
         <p class="eyebrow">Account status</p>
         <h1 id="terminationTitle">This account is terminated</h1>
-        <p><%= safeTerminatedAccount.displayName %>, this Chirpy account is currently disabled and cannot access the app.</p>
+        <p><%= safeTerminatedAccount.displayName %>, this Vextol account is currently disabled and cannot access the app.</p>
         <% if (safeTerminatedAccount.reason || safeTerminatedAccount.terminatedAt) { %>
           <div class="termination-detail">
             <% if (safeTerminatedAccount.reason) { %><strong>Notice:</strong> <%= safeTerminatedAccount.reason %><br /><% } %>
@@ -759,7 +759,7 @@
             <% if (safeTerminatedAccount.appealDecisionAt) { %><p class="appeal-status">Decision recorded <time class="local-time" datetime="<%= new Date(safeTerminatedAccount.appealDecisionAt).toISOString() %>"><%= new Date(safeTerminatedAccount.appealDecisionAt).toISOString() %></time>.</p><% } %>
           <% } else if (safeTerminatedAccount.appealEligible) { %>
             <p class="appeal-status">You may submit one appeal within 30 days of this termination. <span class="appeal-window">Time remaining: <span class="appeal-countdown" data-closes-at="<%= new Date(safeTerminatedAccount.appealClosesAt).toISOString() %>"></span></span></p>
-            <p class="appeal-status">Your appeal is private and visible to Chirpy staff reviewing it. Do not include passwords, authentication codes, tokens, or other sensitive information.</p>
+            <p class="appeal-status">Your appeal is private and visible to Vextol staff reviewing it. Do not include passwords, authentication codes, tokens, or other sensitive information.</p>
             <form method="POST" action="/account-terminated/appeal">
               <label for="appealText" class="muted">Explain why you believe this termination should be reviewed</label>
               <textarea id="appealText" name="appealText" minlength="20" maxlength="2000" required placeholder="Describe the relevant context (20–2,000 characters)."></textarea>
@@ -808,10 +808,10 @@
       <a class="auth-brand" href="/"><img src="/images/chirpy.png?v=1" alt="" /> CHIRPY</a>
       <section class="auth-card" role="alert">
         <div class="termination-icon" aria-hidden="true"><%= statusCode || "!" %></div>
-        <p class="eyebrow">Chirpy · Request status</p>
+        <p class="eyebrow">Vextol · Request status</p>
         <h1><%= statusCode === 404 ? "Page not found" : statusCode === 403 ? "Request blocked" : "We couldn't complete that" %></h1>
         <p><%= statusMessage || "Please try again." %></p>
-        <a class="auth-btn" href="/app">Return to Chirpy</a>
+        <a class="auth-btn" href="/app">Return to Vextol</a>
         <a class="back-home" href="/">Go to public home</a>
       </section>
     </main>
@@ -820,14 +820,13 @@
     <main class="auth-page">
       <a class="auth-brand" href="/"><img src="/images/chirpy.png?v=1" alt="" /> CHIRPY</a>
       <section class="auth-card">
-        <div class="auth-logo"><img src="/images/chirpy.png?v=1" alt="Chirpy" /></div>
-        <p class="eyebrow">Your Chirpy account</p>
-        <h1>Sign in to Chirpy</h1>
-        <p>Use Discord or Google to continue. New users choose a Chirpy handle after signing in.</p>
+        <div class="auth-logo"><img src="/images/chirpy.png?v=1" alt="Vextol" /></div>
+        <p class="eyebrow">Your Vextol account</p>
+        <h1>Sign in to Vextol</h1>
+        <p>Use Discord to continue. New users choose a Vextol handle after signing in.</p>
         <% if (error) { %><p class="form-error"><%= error %></p><% } %>
         <a class="auth-btn" href="/auth/discord?returnTo=<%= encodeURIComponent(returnTo || '/app') %>">Continue with Discord</a>
-        <a class="auth-btn" href="/auth/google?returnTo=<%= encodeURIComponent(returnTo || '/app') %>" style="margin-top:10px;background:#fff;color:#202124;border-color:#d7d7d7">Continue with Google</a>
-        <a class="back-home" href="/">← Back to Chirpy</a>
+        <a class="back-home" href="/">← Back to Vextol</a>
       </section>
     </main>
 
@@ -835,7 +834,7 @@
     <main class="auth-page">
       <a class="auth-brand" href="/"><img src="/images/chirpy.png?v=1" alt="" /> CHIRPY</a>
       <section class="auth-card">
-        <div class="auth-logo"><img src="/images/chirpy.png?v=1" alt="Chirpy" /></div>
+        <div class="auth-logo"><img src="/images/chirpy.png?v=1" alt="Vextol" /></div>
         <p class="eyebrow">Make it yours</p>
         <h1>Set up your profile</h1>
         <p>Choose the name and handle people will see when you join the conversation.</p>
@@ -855,7 +854,7 @@
 
   <% } else if (page === "public-profile") { %>
     <main class="public-profile-page">
-      <a class="public-profile-home" href="/"><img src="/images/chirpy.png?v=1" alt="" width="22" height="22" /> Chirpy public profile</a>
+      <a class="public-profile-home" href="/"><img src="/images/chirpy.png?v=1" alt="" width="22" height="22" /> Vextol public profile</a>
       <header class="public-profile-head">
         <a class="avatar large profile-avatar-link" href="/profile/<%= encodeURIComponent(profileAccount.handle) %>" aria-label="View @<%= profileAccount.handle %>'s profile"><img src="<%= avatarUrl(profileAccount) %>" alt="" onerror="this.removeAttribute('src')" /><span><%= (profileAccount.displayName || profileAccount.username || "?").slice(0,1).toUpperCase() %></span></a>
         <div><h1><%= profileAccount.displayName || profileAccount.username %><%- renderPartnerBadge(profileAccount) %>
@@ -979,7 +978,7 @@
           <div class="settings-grid">
             <% if (saved) { %><p class="settings-saved">Your changes have been saved.</p><% } %>
             <section class="settings-card">
-              <div class="settings-card-heading"><div class="settings-card-icon"><svg><use href="#i-profile"/></svg></div><div><h2>Profile details</h2><p>Update the information people see on Chirpy.</p></div></div>
+              <div class="settings-card-heading"><div class="settings-card-icon"><svg><use href="#i-profile"/></svg></div><div><h2>Profile details</h2><p>Update the information people see on Vextol.</p></div></div>
               <form class="settings-form" method="POST" action="/settings">
                 <label>Display name<input name="displayName" maxlength="40" value="<%= user.displayName %>" required /></label>
                 <label>Bio<textarea name="bio" maxlength="160"><%= user.bio %></textarea></label>
@@ -1123,7 +1122,7 @@
                     <div class="mod-user-name"><%= target.displayName || target.username %> · @<%= target.handle || "no-handle" %></div>
                     <div class="mod-user-meta">Discord <%= target.discordId %> · Verified account</div>
                   </div>
-                  <form method="POST" action="/moderation/users/<%= target._id %>/verification/remove" class="confirm-action" data-confirm-title="Remove verification?" data-confirm-message="The verified badge will be removed. The account owner will see a notice the next time they open Chirpy.">
+                  <form method="POST" action="/moderation/users/<%= target._id %>/verification/remove" class="confirm-action" data-confirm-title="Remove verification?" data-confirm-message="The verified badge will be removed. The account owner will see a notice the next time they open Vextol.">
                     <button class="mod-button danger">Remove verification</button>
                   </form>
                 </div>
@@ -1308,7 +1307,7 @@
         <% } %>
 
         <% if (activeTab === "messages") { %>
-          <div class="feed-heading"><h1>Messages</h1><p>Send someone on Chirpy a note by handle.</p></div>
+          <div class="feed-heading"><h1>Messages</h1><p>Send someone on Vextol a note by handle.</p></div>
           <div class="message-list">
             <% messages.forEach((message) => { const mine = String(message.senderId) === String(user._id); const otherId = mine ? message.recipientId : message.senderId; const other = messageUserMap[String(otherId)]; %>
               <div class="message-bubble <%= mine ? 'mine' : '' %>"><small><%= mine ? "You to" : "From" %> @<%= other ? other.handle || other.displayName : "deleted account" %></small><%= message.text %></div>
@@ -1323,7 +1322,7 @@
           <div class="notification-list">
             <% notifications.forEach((notification) => {
               const actor = notificationActorMap[String(notification.actorId)] || null;
-              const actorName = actor ? actor.displayName || actor.username : "A Chirpy member";
+              const actorName = actor ? actor.displayName || actor.username : "A Vextol member";
               const notificationCopy = ({
                 follow: "started following you",
                 mention: "mentioned you in a post",
@@ -1355,7 +1354,7 @@
         <% if (["home","explore","bookmarks","profile"].includes(activeTab)) { %>
           <% if (!posts.length) { %><div class="empty"><strong><%= activeTab === "profile" && profileView === "reposts" ? "No reposts yet" : activeTab === "profile" ? "No posts yet" : activeTab === "bookmarks" ? "Nothing saved yet" : "No posts found" %></strong><%= activeTab === "profile" && profileView === "reposts" ? "Posts you repost will show here." : activeTab === "bookmarks" ? "Bookmark a post to save it here." : "Try another search or be the first to post." %></div><% } %>
 
-          <% posts.forEach((post) => { const authorIdValue = post.authorId && post.authorId._id ? post.authorId._id : post.authorId; const authorId = String(authorIdValue && typeof authorIdValue.toHexString === "function" ? authorIdValue.toHexString() : authorIdValue || "").toLowerCase(); const author = post.author || userMap[authorId] || Object.values(userMap).find((entry) => String(entry._id && typeof entry._id.toHexString === "function" ? entry._id.toHexString() : entry._id || "").toLowerCase() === authorId); const authorName = author ? author.displayName || author.username : "Chirpy member"; const authorHandle = author ? author.handle || author.username : `member_${authorId.slice(-6)}`; const authorRole = author ? author.role : "user"; const verified = author && author.verificationStatus === "verified"; const isOwnPost = author && String(author._id) === String(user._id); const canStaffManagePost = ["moderator","manager","owner"].includes(user.role); const liked = (post.likes || []).some((id) => String(id) === String(user._id)); const reposted = (post.reposts || []).some((id) => String(id) === String(user._id)); const bookmarked = (post.bookmarks || []).some((id) => String(id) === String(user._id)); const postImage = post.imageMime ? `/posts/${post._id}/image` : ""; %>
+          <% posts.forEach((post) => { const authorIdValue = post.authorId && post.authorId._id ? post.authorId._id : post.authorId; const authorId = String(authorIdValue && typeof authorIdValue.toHexString === "function" ? authorIdValue.toHexString() : authorIdValue || "").toLowerCase(); const author = post.author || userMap[authorId] || Object.values(userMap).find((entry) => String(entry._id && typeof entry._id.toHexString === "function" ? entry._id.toHexString() : entry._id || "").toLowerCase() === authorId); const authorName = author ? author.displayName || author.username : "Vextol member"; const authorHandle = author ? author.handle || author.username : `member_${authorId.slice(-6)}`; const authorRole = author ? author.role : "user"; const verified = author && author.verificationStatus === "verified"; const isOwnPost = author && String(author._id) === String(user._id); const canStaffManagePost = ["moderator","manager","owner"].includes(user.role); const liked = (post.likes || []).some((id) => String(id) === String(user._id)); const reposted = (post.reposts || []).some((id) => String(id) === String(user._id)); const bookmarked = (post.bookmarks || []).some((id) => String(id) === String(user._id)); const postImage = post.imageMime ? `/posts/${post._id}/image` : ""; %>
             <article class="post" id="<%= post._id %>">
               <% const postPollVotes = post.poll && post.poll.votes || []; const userPollVote = postPollVotes.find((vote) => String(vote.userId) === String(user._id)); const pollVoteCounts = post.poll ? post.poll.options.map((option, index) => postPollVotes.filter((vote) => vote.optionIndex === index).length) : []; const pollTotalVotes = pollVoteCounts.reduce((total, count) => total + count, 0); %>
               <% if (activeTab === "profile" && profileView === "reposts") { %><div class="repost-note">↻ You reposted</div><% } %>
@@ -1448,7 +1447,7 @@
 
     <dialog class="confirm-dialog" id="confirmDialog" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
       <div class="confirm-content">
-        <p class="confirm-kicker">Chirpy moderation</p>
+        <p class="confirm-kicker">Vextol moderation</p>
         <h2 id="confirmTitle">Confirm action</h2>
         <p id="confirmMessage"></p>
         <div class="confirm-actions">
@@ -1559,7 +1558,7 @@
       }
       function redirectToLoginIfNeeded(response) {
         if (response.status !== 401) return false;
-        const loginUrl = response.headers.get("X-Chirpy-Login-Url");
+        const loginUrl = response.headers.get("X-Vextol-Login-Url");
         const dialog = document.getElementById("sessionExpiredDialog");
         const loginLink = document.getElementById("sessionExpiredLogin");
         if (loginLink && loginUrl) loginLink.href = loginUrl;
@@ -1762,13 +1761,13 @@
 
           if (!/^\d{17,20}$/.test(discordId)) {
             roleAssignmentPreview.textContent = discordId
-              ? "Enter a complete 17–20 digit Discord ID to check for an existing Chirpy profile."
+              ? "Enter a complete 17–20 digit Discord ID to check for an existing Vextol profile."
               : "";
             roleAssignmentPreview.hidden = !discordId;
             return;
           }
 
-          roleAssignmentPreview.textContent = "Checking for an existing Chirpy profile…";
+          roleAssignmentPreview.textContent = "Checking for an existing Vextol profile…";
           roleLookupTimer = window.setTimeout(async () => {
             roleLookupController = new AbortController();
             try {
@@ -1853,7 +1852,7 @@
 
               partnerLookupResult.replaceChildren();
               if (!result.found) {
-                partnerLookupResult.textContent = result.message || "No existing Chirpy account was found.";
+                partnerLookupResult.textContent = result.message || "No existing Vextol account was found.";
                 return;
               }
 
@@ -2164,7 +2163,7 @@
         button.addEventListener("click", async () => {
           const url = `${location.origin}/app#${button.dataset.id}`;
           try {
-            if (navigator.share) await navigator.share({ title: "Chirpy post", url });
+            if (navigator.share) await navigator.share({ title: "Vextol post", url });
             else {
               await navigator.clipboard.writeText(url);
               button.title = "Link copied";
